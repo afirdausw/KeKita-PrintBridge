@@ -1,0 +1,30 @@
+plugins {
+    id 'com.android.application'
+}
+
+android {
+    namespace 'devyana.kekita.printbridge'
+    compileSdk 34
+
+    defaultConfig {
+        applicationId "devyana.kekita.printbridge"
+        minSdk 27
+        targetSdkVersion 33
+        versionCode 1
+        versionName "1.6"
+        multiDexEnabled true
+    }
+
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_1_8
+        targetCompatibility JavaVersion.VERSION_1_8
+    }
+}
+
+dependencies {
+
+    implementation 'androidx.core:core:1.12.0'
+    implementation 'androidx.appcompat:appcompat:1.7.0'
+    implementation 'com.google.android.material:material:1.12.0'
+
+}
