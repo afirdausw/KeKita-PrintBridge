@@ -52,7 +52,7 @@
             android:textColor="#FFF"
             app:backgroundTint="#3A459B"
             app:cornerRadius="12dp"
-            app:icon="@drawable/twotone_cast_connected"
+            app:icon="@drawable/twotone_print"
             app:iconSize="20dp"
             app:iconTint="@color/white" />
 
@@ -67,7 +67,23 @@
             android:textColor="#FFF"
             app:backgroundTint="#3A459B"
             app:cornerRadius="12dp"
-            app:icon="@drawable/twotone_document_scanner"
+            app:icon="@drawable/twotone_cast_connected"
+            app:iconSize="20dp"
+            app:iconTint="@color/white" />
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btn_settings"
+            style="@style/Widget.MaterialComponents.Button"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:letterSpacing="0"
+            android:onClick="onSettings"
+            android:paddingEnd="30dp"
+            android:text="Pengaturan"
+            android:textColor="#FFF"
+            app:backgroundTint="#3A459B"
+            app:cornerRadius="12dp"
+            app:icon="@drawable/twotone_settings"
             app:iconSize="20dp"
             app:iconTint="@color/white" />
 
@@ -82,7 +98,7 @@
             android:textColor="#FFF"
             app:backgroundTint="#3A459B"
             app:cornerRadius="12dp"
-            app:icon="@drawable/twotone_print"
+            app:icon="@drawable/twotone_document_scanner"
             app:iconSize="20dp"
             app:iconTint="@color/white" />
 

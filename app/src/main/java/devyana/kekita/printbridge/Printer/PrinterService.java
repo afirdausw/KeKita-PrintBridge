@@ -191,7 +191,7 @@ public class PrinterService extends Service {
 
             SharedPreferences prefs = getSharedPreferences(PREFS, MODE_PRIVATE);
             String widthStr = prefs.getString(KEY_PAPER_WIDTH, "58");
-            int paperWidth = widthStr.equals("80") ? 45 : 32;
+            int paperWidth = widthStr.equals("80") ? 45 : 31;
 
             EscPosFormatter f = new EscPosFormatter(paperWidth);
             StringBuilder sb = new StringBuilder();
@@ -303,7 +303,7 @@ public class PrinterService extends Service {
 
             SharedPreferences prefs = getSharedPreferences(PREFS, MODE_PRIVATE);
             String widthStr = prefs.getString(KEY_PAPER_WIDTH, "58");
-            int paperWidth = widthStr.equals("80") ? 45 : 32;
+            int paperWidth = widthStr.equals("80") ? 45 : 31;
 
             EscPosFormatter f = new EscPosFormatter(paperWidth);
             StringBuilder sb = new StringBuilder();

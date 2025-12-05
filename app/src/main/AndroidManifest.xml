@@ -41,6 +41,10 @@
             android:exported="true" />
 
         <activity
+            android:name=".Activity.SettingsActivity"
+            android:exported="true" />
+
+        <activity
             android:name="devyana.kekita.printbridge.Activity.TestPrintActivity"
             android:exported="true" />
 

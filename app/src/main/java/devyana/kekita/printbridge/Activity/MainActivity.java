@@ -10,7 +10,6 @@ import android.graphics.BitmapFactory;
 import android.graphics.Color;
 import android.os.Build;
 import android.os.Bundle;
-import android.util.Log;
 import android.view.View;
 import android.view.Window;
 import android.widget.ImageView;
@@ -32,7 +31,6 @@ import java.util.List;
 import java.util.Map;
 
 import devyana.kekita.printbridge.Helper.DatabaseHelper;
-import devyana.kekita.printbridge.Helper.EscPosImageHelper;
 import devyana.kekita.printbridge.Printer.PrinterService;
 import devyana.kekita.printbridge.R;
 
@@ -261,6 +259,10 @@ public class MainActivity extends AppCompatActivity {
                             Manifest.permission.BLUETOOTH_SCAN
                     }, 3001);
         }
+    }
+
+    public void onSettings(View view) {
+        startActivity(new Intent(getApplicationContext(), SettingsActivity.class));
     }
 
     public void onTest(View view) {
