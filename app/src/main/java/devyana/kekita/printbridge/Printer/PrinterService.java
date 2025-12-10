@@ -20,14 +20,21 @@ import androidx.annotation.Nullable;
 import androidx.core.app.NotificationCompat;
 
 import org.json.JSONArray;
+import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.OutputStream;
+import java.net.HttpURLConnection;
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.Iterator;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.Scanner;
 import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.Executors;
@@ -112,16 +119,16 @@ public class PrinterService extends Service {
     private void checkPrintQueue() {
         new Thread(() -> {
             try {
-                java.net.URL url = new java.net.URL(API_URL + "print_queue");
-                java.net.HttpURLConnection conn = (java.net.HttpURLConnection) url.openConnection();
+                URL url = new URL(API_URL + "print_queue");
+                HttpURLConnection conn = (HttpURLConnection) url.openConnection();
                 conn.setRequestMethod("GET");
                 conn.setConnectTimeout(5000);
                 conn.setReadTimeout(5000);
 
                 int responseCode = conn.getResponseCode();
                 if (responseCode == 200) {
-                    java.io.InputStream in = conn.getInputStream();
-                    java.util.Scanner s = new java.util.Scanner(in).useDelimiter("\\A");
+                    InputStream in = conn.getInputStream();
+                    Scanner s = new Scanner(in).useDelimiter("\\A");
                     String response = s.hasNext() ? s.next() : "";
                     s.close();
                     conn.disconnect();
@@ -133,12 +140,12 @@ public class PrinterService extends Service {
                             JSONObject row = arr.getJSONObject(i);
                             processRow(row);
                         }
-                    } catch (org.json.JSONException e) {
+                    } catch (JSONException e) {
                         try {
                             // kalau gagal, berarti JSONObject tunggal
                             JSONObject row = new JSONObject(response);
                             processRow(row);
-                        } catch (org.json.JSONException ex) {
+                        } catch (JSONException ex) {
                             Log.e(TAG, "Invalid JSON response: " + response, ex);
                         }
                     }
@@ -284,12 +291,15 @@ public class PrinterService extends Service {
             sb.append(f.separator());
             sb.append(String.format("%-" + (paperWidth - 10) + "s %10s\n", "TOTAL PAID", f.formatNumber(data.optString("total_harus_dibayar", "0"))));
             sb.append(f.separator()).append(f.feed(1));
-            sb.append(f.center("THANK YOU"));
+
+            if (pembayaran.trim().isEmpty()) {
+                sb.append(f.center("--- Tagihan Belum Dibayar ---\n"));
+            }
+
+            sb.append(f.center("THANK YOU\n"));
             sb.append(f.center(dbHelper.getSetting("footer_text")));
-            sb.append(f.center(data.optString("footer2", "")));
 
             // TODO: kirim ke PrinterService -> Bluetooth
-            System.out.println(sb.toString());
             return printRaw(logoBytes, sb.toString());
         } catch (Exception e) {
             Log.e(TAG, "handlePayloadJson error", e);
@@ -326,43 +336,32 @@ public class PrinterService extends Service {
             // === PENJUALAN ===
             JSONObject penjualan = data.optJSONObject("penjualan");
             if (penjualan != null) {
-                sb.append(f.center("PENJUALAN")).append("\n");
+                sb.append(f.center("PENJUALAN"));
 
                 JSONArray items = penjualan.optJSONArray("items");
                 if (items != null) {
-                    // urutkan manual (Makanan, Minuman, Snack)
-                    List<JSONObject> makanan = new ArrayList<>();
-                    List<JSONObject> minuman = new ArrayList<>();
-                    List<JSONObject> snack   = new ArrayList<>();
+                    Map<String, List<JSONObject>> kategori = new LinkedHashMap<>();
 
                     for (int i = 0; i < items.length(); i++) {
                         JSONObject it = items.getJSONObject(i);
-                        String jenis = it.optString("jenis_produk", "");
-                        if ("Makanan".equalsIgnoreCase(jenis)) {
-                            makanan.add(it);
-                        } else if ("Minuman".equalsIgnoreCase(jenis)) {
-                            minuman.add(it);
-                        } else {
-                            snack.add(it);
+
+                        String jenis = it.optString("jenis_produk", "").trim();
+
+                        if (jenis.isEmpty()) {
+                            jenis = "Lainnya";
                         }
+
+                        kategori.putIfAbsent(jenis, new ArrayList<>());
+                        kategori.get(jenis).add(it);
                     }
 
-                    // print per kategori
-                    if (!makanan.isEmpty()) {
-                        sb.append(f.left("== MAKANAN =="));
-                        for (JSONObject it : makanan) {
-                            sb.append(f.formatRecapItem(f, it));
-                        }
-                    }
-                    if (!minuman.isEmpty()) {
-                        sb.append(f.left("\n== MINUMAN =="));
-                        for (JSONObject it : minuman) {
-                            sb.append(f.formatRecapItem(f, it));
-                        }
-                    }
-                    if (!snack.isEmpty()) {
-                        sb.append(f.left("\n== SNACK =="));
-                        for (JSONObject it : snack) {
+                    for (Map.Entry<String, List<JSONObject>> entry : kategori.entrySet()) {
+                        String namaKategori = entry.getKey().toUpperCase();
+                        List<JSONObject> listItem = entry.getValue();
+
+                        sb.append(f.left("\n== " + namaKategori + " =="));
+
+                        for (JSONObject it : listItem) {
                             sb.append(f.formatRecapItem(f, it));
                         }
                     }
@@ -370,7 +369,7 @@ public class PrinterService extends Service {
 
                 sb.append(f.separator());
                 sb.append(f.center(laporan.optString("tanggal", "-")));
-                sb.append(f.center(laporan.optString("waktu_awal", "-") + " - " + laporan.optString("waktu_akhir", "-"))).append("\n");
+                sb.append(f.center(laporan.optString("waktu_awal", "-") + " - " + laporan.optString("waktu_akhir", "-")));
                 sb.append(String.format("%-" + (paperWidth-10) + "s %10s\n", "Subtotal",
                         f.formatNumber(penjualan.optString("subtotal", "0"))));
                 sb.append(String.format("%-" + (paperWidth-10) + "s %10s\n", "Diskon",
@@ -392,7 +391,7 @@ public class PrinterService extends Service {
             JSONObject penerimaanAktual = data.optJSONObject("penerimaan_aktual");
             if (penerimaanAktual != null) {
                 sb.append(f.separator());
-                sb.append(f.center("PENERIMAAN AKTUAL")).append("\n");
+                sb.append(f.center("PENERIMAAN AKTUAL"));
 
                 int tunai = penerimaanAktual.optInt("tunai", 0);
                 if (tunai > 0) sb.append(String.format("%-" + (paperWidth-10) + "s %10s\n", "Tunai", f.formatNumber(String.valueOf(tunai))));
@@ -486,7 +485,7 @@ public class PrinterService extends Service {
             JSONObject penerimaanSistem = data.optJSONObject("penerimaan_sistem");
             if (penerimaanSistem != null) {
                 sb.append(f.separator());
-                sb.append(f.center("PENERIMAAN SISTEM")).append("\n");
+                sb.append(f.center("PENERIMAAN SISTEM"));
                 sb.append(String.format("%-" + (paperWidth-10) + "s %10s\n", "Penjualan",
                         f.formatNumber(penerimaanSistem.optString("penjualan", "0"))));
                 sb.append(String.format("%-" + (paperWidth-10) + "s %10s\n", "Retur",
@@ -544,6 +543,7 @@ public class PrinterService extends Service {
             out.write(new byte[]{0x1D, 0x56, 0x00});
             out.flush();
 
+            Log.i("PREVIEW", text.toString());
             Log.i(TAG, "Printed successfully (length=" + data.length + ")");
             return true;
         } catch (Exception e) {

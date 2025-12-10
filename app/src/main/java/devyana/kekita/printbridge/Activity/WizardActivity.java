@@ -40,8 +40,6 @@ public class WizardActivity extends AppCompatActivity {
     private MaterialButton btnAktivasi;
     private ProgressBar progressBar;
     private DatabaseHelper dbHelper;
-
-    // Ganti dengan URL API Anda
     private static final String API_VERIFY_URL = "https://devyana.my.id/verify.php";
 
     @Override

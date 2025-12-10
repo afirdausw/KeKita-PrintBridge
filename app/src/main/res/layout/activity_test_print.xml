@@ -67,7 +67,7 @@
             android:letterSpacing="0"
             android:text="Tes Print"
             android:textColor="#FFF"
-            app:backgroundTint="#3A459B"
+            app:backgroundTint="#6356da"
             app:cornerRadius="12dp" />
 
     </LinearLayout>

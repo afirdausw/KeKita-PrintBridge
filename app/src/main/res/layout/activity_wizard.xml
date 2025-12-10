@@ -57,14 +57,14 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:hint="Kode Akses"
-                android:textColorHint="#3A459B"
+                android:textColorHint="#6356da"
                 app:boxCornerRadiusBottomEnd="12dp"
                 app:boxCornerRadiusBottomStart="12dp"
                 app:boxCornerRadiusTopEnd="12dp"
                 app:boxCornerRadiusTopStart="12dp"
-                app:boxStrokeColor="#3A459B"
+                app:boxStrokeColor="#6356da"
                 app:startIconDrawable="@drawable/twotone_vpn_key"
-                app:startIconTint="#3A459B">
+                app:startIconTint="#6356da">
 
                 <com.google.android.material.textfield.TextInputEditText
                     android:id="@+id/input_kode"
@@ -73,7 +73,7 @@
                     android:imeOptions="actionDone"
                     android:importantForAutofill="no"
                     android:inputType="textCapCharacters|textNoSuggestions"
-                    android:textColor="#3A459B"
+                    android:textColor="#323e9b"
                     android:textSize="16sp" />
 
             </com.google.android.material.textfield.TextInputLayout>
@@ -87,7 +87,7 @@
                 android:letterSpacing="0"
                 android:text="Aktivasi"
                 android:textColor="#FFF"
-                app:backgroundTint="#3A459B"
+                app:backgroundTint="#6356da"
                 app:cornerRadius="12dp" />
 
             <ProgressBar

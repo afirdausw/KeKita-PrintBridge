@@ -77,8 +77,11 @@ public class EscPosFormatter {
 
     public String formatNumber(String val) {
         try {
+            boolean isNegative = val.contains("-");
             long num = Long.parseLong(val.replaceAll("[^0-9]", ""));
-            return String.format("%,d", num).replace(',', '.');
+            String formatted = String.format("%,d", num).replace(',', '.');
+
+            return isNegative ? "-" + formatted : formatted;
         } catch (Exception e) {
             return val;
         }

@@ -11,12 +11,21 @@
         android:orientation="vertical"
         android:paddingBottom="40dp">
 
-        <ImageView
-            android:id="@+id/iv_client_logo"
-            android:layout_width="80sp"
-            android:layout_height="80sp"
+        <androidx.cardview.widget.CardView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
             android:layout_gravity="center"
-            android:src="@drawable/logo_default" />
+            app:cardBackgroundColor="#00000000"
+            app:cardCornerRadius="25dp"
+            app:cardElevation="0dp">
+
+            <ImageView
+                android:id="@+id/iv_client_logo"
+                android:layout_width="100sp"
+                android:layout_height="100sp"
+                android:src="@mipmap/ic_launcher" />
+
+        </androidx.cardview.widget.CardView>
 
         <TextView
             android:id="@+id/tv_client_name"
@@ -51,7 +60,7 @@
             android:paddingEnd="30dp"
             android:text="Pilih Printer"
             android:textColor="#FFF"
-            app:backgroundTint="#3A459B"
+            app:backgroundTint="#5447CC"
             app:cornerRadius="12dp"
             app:icon="@drawable/twotone_cast_connected"
             app:iconSize="20dp"
@@ -66,9 +75,24 @@
             android:paddingEnd="30dp"
             android:text="Setting Ukuran Kertas"
             android:textColor="#FFF"
-            app:backgroundTint="#3A459B"
+            app:backgroundTint="#5447CC"
             app:cornerRadius="12dp"
             app:icon="@drawable/twotone_document_scanner"
+            app:iconSize="20dp"
+            app:iconTint="@color/white" />
+
+        <com.google.android.material.button.MaterialButton
+            style="@style/Widget.MaterialComponents.Button"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:letterSpacing="0"
+            android:onClick="onTest"
+            android:paddingEnd="30dp"
+            android:text="UJI Coba Print"
+            android:textColor="#FFF"
+            app:backgroundTint="#5447CC"
+            app:cornerRadius="12dp"
+            app:icon="@drawable/twotone_print"
             app:iconSize="20dp"
             app:iconTint="@color/white" />
 
@@ -82,24 +106,9 @@
             android:paddingEnd="30dp"
             android:text="Pengaturan"
             android:textColor="#FFF"
-            app:backgroundTint="#3A459B"
+            app:backgroundTint="#5447CC"
             app:cornerRadius="12dp"
             app:icon="@drawable/twotone_settings"
-            app:iconSize="20dp"
-            app:iconTint="@color/white" />
-
-        <com.google.android.material.button.MaterialButton
-            style="@style/Widget.MaterialComponents.Button"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:letterSpacing="0"
-            android:onClick="onTest"
-            android:paddingEnd="30dp"
-            android:text="UJI Coba Print"
-            android:textColor="#FFF"
-            app:backgroundTint="#3A459B"
-            app:cornerRadius="12dp"
-            app:icon="@drawable/twotone_print"
             app:iconSize="20dp"
             app:iconTint="@color/white" />
 
