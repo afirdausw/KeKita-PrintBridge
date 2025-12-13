@@ -260,36 +260,53 @@ public class PrinterService extends Service {
             }
 
             // TOTALS
+            int totalDiskon = parseIntSafe(data.optString("total_diskon", "0"));
+            int totalPotongan = parseIntSafe(data.optString("total_potongan", "0"));
+            int totalService = parseIntSafe(data.optString("total_service", "0"));
+            int totalPPN = parseIntSafe(data.optString("total_ppn", "0"));
+            int total = parseIntSafe(data.optString("total", "0"));
+            int rounding = parseIntSafe(data.optString("nilai_pembulatan", "0"));
+            int totalGrand = parseIntSafe(data.optString("total_harus_dibayar", "0"));
+            int totalPaid = parseIntSafe(data.optString("total_bayar", "0"));
+            int totalExcange = parseIntSafe(data.optString("total_kembali", "0"));
+
             sb.append(f.separator());
             sb.append(String.format("%-" + (paperWidth - 10) + "s %10s\n", "Subtotal", f.formatNumber(data.optString("total_pesanan", "0"))));
             // -- diskon item
-            int totalDiskon = parseIntSafe(data.optString("total_diskon", "0"));
             if (totalDiskon > 0) {
                 sb.append(String.format("%-" + (paperWidth - 10) + "s %10s\n", "Discount", f.formatNumber(String.valueOf(totalDiskon))));
             }
             // -- potongan
-            int totalPotongan = parseIntSafe(data.optString("total_potongan", "0"));
             if (totalPotongan > 0) {
                 sb.append(String.format("%-" + (paperWidth - 10) + "s %10s\n", "Voucher Discount", f.formatNumber(String.valueOf(totalPotongan))));
             }
             // -- service
-            int totalService = parseIntSafe(data.optString("total_service", "0"));
             if (totalService > 0) {
-                sb.append(String.format("%-" + (paperWidth - 10) + "s %10s\n", "Service Charge (5%)", f.formatNumber(data.optString("total_service", "0"))));
+                sb.append(String.format("%-" + (paperWidth - 10) + "s %10s\n", "Service Charge (5%)", f.formatNumber(String.valueOf(totalService))));
             }
             // -- ppn
-            int totalPPN = parseIntSafe(data.optString("total_ppn", "0"));
             if (totalPPN > 0) {
-                sb.append(String.format("%-" + (paperWidth - 10) + "s %10s\n", "Tax (10%)", f.formatNumber(data.optString("total_ppn", "0"))));
+                sb.append(String.format("%-" + (paperWidth - 10) + "s %10s\n", "Tax (10%)", f.formatNumber(String.valueOf(totalPPN))));
             }
-            sb.append(String.format("%-" + (paperWidth - 10) + "s %10s\n", "Total", f.formatNumber(data.optString("total", "0"))));
+            // -- total dari sebelumnya
+            if (total != totalGrand) {
+                sb.append(String.format("%-" + (paperWidth - 10) + "s %10s\n", "Total", f.formatNumber(String.valueOf(total))));
+            }
             // -- pembulatan
-            int pembulatan = parseIntSafe(data.optString("nilai_pembulatan", "0"));
-            if (pembulatan != 0) {
-                sb.append(String.format("%-" + (paperWidth - 10) + "s %10s\n", "Rounding", f.formatNumber(data.optString("nilai_pembulatan", "0"))));
+            if (rounding != 0) {
+                sb.append(String.format("%-" + (paperWidth - 10) + "s %10s\n", "Rounding", f.formatNumber(String.valueOf(rounding))));
             }
+            // -- total akhir
             sb.append(f.separator());
-            sb.append(String.format("%-" + (paperWidth - 10) + "s %10s\n", "TOTAL PAID", f.formatNumber(data.optString("total_harus_dibayar", "0"))));
+            sb.append(String.format("%-" + (paperWidth - 10) + "s %10s\n", "TOTAL PAID", f.formatNumber(String.valueOf(totalGrand))));
+
+            if (totalPaid != 0) {
+                sb.append(String.format("%-" + (paperWidth - 10) + "s %10s\n", "Paid", f.formatNumber(String.valueOf(totalPaid))));
+            }
+            if (totalExcange > 0) {
+                sb.append(String.format("%-" + (paperWidth - 10) + "s %10s\n", "Exchange", f.formatNumber(String.valueOf(totalExcange))));
+            }
+
             sb.append(f.separator()).append(f.feed(1));
 
             if (pembayaran.trim().isEmpty()) {
@@ -370,20 +387,20 @@ public class PrinterService extends Service {
                 sb.append(f.separator());
                 sb.append(f.center(laporan.optString("tanggal", "-")));
                 sb.append(f.center(laporan.optString("waktu_awal", "-") + " - " + laporan.optString("waktu_akhir", "-")));
-                sb.append(String.format("%-" + (paperWidth-10) + "s %10s\n", "Subtotal",
+                sb.append(String.format("%-" + (paperWidth - 10) + "s %10s\n", "Subtotal",
                         f.formatNumber(penjualan.optString("subtotal", "0"))));
-                sb.append(String.format("%-" + (paperWidth-10) + "s %10s\n", "Diskon",
+                sb.append(String.format("%-" + (paperWidth - 10) + "s %10s\n", "Diskon",
                         f.formatNumber(penjualan.optString("diskon", "0"))));
-                sb.append(String.format("%-" + (paperWidth-10) + "s %10s\n", "Potongan",
+                sb.append(String.format("%-" + (paperWidth - 10) + "s %10s\n", "Potongan",
                         f.formatNumber(penjualan.optString("potongan", "0"))));
-                sb.append(String.format("%-" + (paperWidth-10) + "s %10s\n", "Service (5%)",
+                sb.append(String.format("%-" + (paperWidth - 10) + "s %10s\n", "Service (5%)",
                         f.formatNumber(penjualan.optString("service", "0"))));
-                sb.append(String.format("%-" + (paperWidth-10) + "s %10s\n", "PPN (10%)",
+                sb.append(String.format("%-" + (paperWidth - 10) + "s %10s\n", "PPN (10%)",
                         f.formatNumber(penjualan.optString("ppn", "0"))));
-                sb.append(String.format("%-" + (paperWidth-10) + "s %10s\n", "Pembulatan",
+                sb.append(String.format("%-" + (paperWidth - 10) + "s %10s\n", "Pembulatan",
                         f.formatNumber(penjualan.optString("pembulatan", "0"))));
                 sb.append(f.separator());
-                sb.append(String.format("%-" + (paperWidth-10) + "s %10s\n", "TOTAL",
+                sb.append(String.format("%-" + (paperWidth - 10) + "s %10s\n", "TOTAL",
                         f.formatNumber(penjualan.optString("total", "0"))));
             }
 
@@ -394,10 +411,12 @@ public class PrinterService extends Service {
                 sb.append(f.center("PENERIMAAN AKTUAL"));
 
                 int tunai = penerimaanAktual.optInt("tunai", 0);
-                if (tunai > 0) sb.append(String.format("%-" + (paperWidth-10) + "s %10s\n", "Tunai", f.formatNumber(String.valueOf(tunai))));
+                if (tunai > 0)
+                    sb.append(String.format("%-" + (paperWidth - 10) + "s %10s\n", "Tunai", f.formatNumber(String.valueOf(tunai))));
 
                 int qris = penerimaanAktual.optInt("qris", 0);
-                if (qris > 0) sb.append(String.format("%-" + (paperWidth-10) + "s %10s\n", "QRIS", f.formatNumber(String.valueOf(qris))));
+                if (qris > 0)
+                    sb.append(String.format("%-" + (paperWidth - 10) + "s %10s\n", "QRIS", f.formatNumber(String.valueOf(qris))));
 
                 JSONObject edc = penerimaanAktual.optJSONObject("edc");
                 if (edc != null) {
@@ -405,7 +424,7 @@ public class PrinterService extends Service {
                     while (keys.hasNext()) {
                         String bank = keys.next();
                         int val = edc.optInt(bank, 0);
-                        sb.append(String.format("%-" + (paperWidth-10) + "s %10s\n", "EDC " + bank, f.formatNumber(String.valueOf(val))));
+                        sb.append(String.format("%-" + (paperWidth - 10) + "s %10s\n", "EDC " + bank, f.formatNumber(String.valueOf(val))));
                     }
                 }
 
@@ -415,16 +434,16 @@ public class PrinterService extends Service {
                     while (keys.hasNext()) {
                         String bank = keys.next();
                         int val = transfer.optInt(bank, 0);
-                        sb.append(String.format("%-" + (paperWidth-10) + "s %10s\n", "Transfer " + bank, f.formatNumber(String.valueOf(val))));
+                        sb.append(String.format("%-" + (paperWidth - 10) + "s %10s\n", "Transfer " + bank, f.formatNumber(String.valueOf(val))));
                     }
                 }
 
                 sb.append(f.separator());
-                sb.append(String.format("%-" + (paperWidth-10) + "s %10s\n", "TOTAL AKTUAL",
+                sb.append(String.format("%-" + (paperWidth - 10) + "s %10s\n", "TOTAL AKTUAL",
                         f.formatNumber(penerimaanAktual.optString("total", "0"))));
 
                 sb.append(f.separator());
-                sb.append(String.format("%-" + (paperWidth-10) + "s %10s\n", "BELUM DIBAYAR",
+                sb.append(String.format("%-" + (paperWidth - 10) + "s %10s\n", "BELUM DIBAYAR",
                         f.formatNumber(penerimaanAktual.optString("belum_bayar", "0"))));
             }
 
@@ -449,9 +468,11 @@ public class PrinterService extends Service {
                     sb.append(f.separator());
                     sb.append(f.center("PENERIMAAN PERGANTIAN SHIFT")).append("\n");
 
-                    if (tunai2 > 0) sb.append(String.format("%-" + (paperWidth-10) + "s %10s\n", "Tunai", f.formatNumber(String.valueOf(tunai2))));
+                    if (tunai2 > 0)
+                        sb.append(String.format("%-" + (paperWidth - 10) + "s %10s\n", "Tunai", f.formatNumber(String.valueOf(tunai2))));
 
-                    if (qris2 > 0) sb.append(String.format("%-" + (paperWidth-10) + "s %10s\n", "QRIS", f.formatNumber(String.valueOf(qris2))));
+                    if (qris2 > 0)
+                        sb.append(String.format("%-" + (paperWidth - 10) + "s %10s\n", "QRIS", f.formatNumber(String.valueOf(qris2))));
 
                     if (edc2 != null) {
                         Iterator<String> keys = edc2.keys();
@@ -459,7 +480,7 @@ public class PrinterService extends Service {
                             String bank = keys.next();
                             int val = edc2.optInt(bank, 0);
                             if (val > 0) {
-                                sb.append(String.format("%-" + (paperWidth-10) + "s %10s\n", "EDC " + bank, f.formatNumber(String.valueOf(val))));
+                                sb.append(String.format("%-" + (paperWidth - 10) + "s %10s\n", "EDC " + bank, f.formatNumber(String.valueOf(val))));
                             }
                         }
                     }
@@ -470,13 +491,13 @@ public class PrinterService extends Service {
                             String bank = keys.next();
                             int val = transfer2.optInt(bank, 0);
                             if (val > 0) {
-                                sb.append(String.format("%-" + (paperWidth-10) + "s %10s\n", "Transfer " + bank, f.formatNumber(String.valueOf(val))));
+                                sb.append(String.format("%-" + (paperWidth - 10) + "s %10s\n", "Transfer " + bank, f.formatNumber(String.valueOf(val))));
                             }
                         }
                     }
 
                     sb.append(f.separator());
-                    sb.append(String.format("%-" + (paperWidth-10) + "s %10s\n", "TOTAL DARI PERGANTIAN SHIFT",
+                    sb.append(String.format("%-" + (paperWidth - 10) + "s %10s\n", "TOTAL DARI PERGANTIAN SHIFT",
                             f.formatNumber(penerimaanPergantian.optString("total", "0"))));
                 }
             }
@@ -486,9 +507,9 @@ public class PrinterService extends Service {
             if (penerimaanSistem != null) {
                 sb.append(f.separator());
                 sb.append(f.center("PENERIMAAN SISTEM"));
-                sb.append(String.format("%-" + (paperWidth-10) + "s %10s\n", "Penjualan",
+                sb.append(String.format("%-" + (paperWidth - 10) + "s %10s\n", "Penjualan",
                         f.formatNumber(penerimaanSistem.optString("penjualan", "0"))));
-                sb.append(String.format("%-" + (paperWidth-10) + "s %10s\n", "Retur",
+                sb.append(String.format("%-" + (paperWidth - 10) + "s %10s\n", "Retur",
                         f.formatNumber(penerimaanSistem.optString("retur", "0"))));
             }
 
@@ -555,7 +576,15 @@ public class PrinterService extends Service {
 
     private int parseIntSafe(String s) {
         try {
-            return Integer.parseInt(s.replaceAll("[^0-9]", ""));
+            boolean isNegative = s.trim().startsWith("-");
+
+            String digitsOnly = s.replaceAll("[^0-9]", "");
+            if (digitsOnly.isEmpty()) {
+                return 0;
+            }
+            int value = Integer.parseInt(digitsOnly);
+
+            return isNegative ? -value : value;
         } catch (Exception e) {
             return 0;
         }
@@ -637,7 +666,7 @@ public class PrinterService extends Service {
         Notification notification = new NotificationCompat.Builder(this, CHANNEL_ID)
                 .setContentTitle("Print Bridge")
                 .setContentText(text)
-                .setSmallIcon(R.mipmap.img_notification)
+                .setSmallIcon(R.drawable.twotone_print)
                 .setOngoing(true)
                 .setOnlyAlertOnce(true)
                 .setSound(null)
@@ -654,7 +683,7 @@ public class PrinterService extends Service {
         NotificationCompat.Builder b = new NotificationCompat.Builder(this, CHANNEL_ID)
                 .setContentTitle("Print Bridge")
                 .setContentText(contentText)
-                .setSmallIcon(R.mipmap.img_notification)
+                .setSmallIcon(R.drawable.twotone_print)
                 .setOngoing(true)
                 .setOnlyAlertOnce(true)
                 .setPriority(NotificationCompat.PRIORITY_LOW)
@@ -693,7 +722,7 @@ public class PrinterService extends Service {
         Notification notification = new NotificationCompat.Builder(this, CHANNEL_ID)
                 .setContentTitle("Print Bridge")
                 .setContentText("Service running and waiting for print jobs")
-                .setSmallIcon(R.mipmap.img_notification)
+                .setSmallIcon(R.drawable.twotone_print)
                 .setOngoing(true)
                 .build();
 
