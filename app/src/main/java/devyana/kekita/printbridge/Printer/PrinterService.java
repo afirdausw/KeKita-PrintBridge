@@ -218,21 +218,43 @@ public class PrinterService extends Service {
                 logoBytes = EscPosImageHelper.decodeBitmap(logo);
             }
 
+            String lang = dbHelper.getSetting("language");
+            boolean isIndo = "indonesia".equalsIgnoreCase(lang);
+
+            String lblInvoice = isIndo ? "Invoice    : #" : "Invoice  : #";
+            String lblTime    = isIndo ? "Waktu      : "  : "Time     : ";
+            String lblCashier = isIndo ? "Kasir      : "  : "Cashier  : ";
+            String lblTable   = isIndo ? "Meja       : "  : "Table    : ";
+            String lblPayment = isIndo ? "Pembayaran : "  : "Payment  : ";
+            
+            String lblSubtotal = "Subtotal";
+            String lblDiscount = isIndo ? "Diskon" : "Discount";
+            String lblVoucher  = isIndo ? "Potongan Voucher" : "Voucher Discount";
+            String lblService  = isIndo ? "Layanan (5%)" : "Service Charge (5%)";
+            String lblTax      = isIndo ? "Pajak (10%)" : "Tax (10%)";
+            String lblTotal    = "Total";
+            String lblRounding = isIndo ? "Pembulatan" : "Rounding";
+            String lblTotalPaid= isIndo ? "TOTAL DIBAYAR" : "TOTAL PAID";
+            String lblPaid     = isIndo ? "Dibayar" : "Paid";
+            String lblExchange = isIndo ? "Kembali" : "Exchange";
+            String lblUnpaid   = isIndo ? "--- Tagihan Belum Dibayar ---" : "--- Unpaid Bill ---";
+            String lblThankYou = isIndo ? "TERIMA KASIH" : "THANK YOU";
+
             // === HEADER ===
             sb.append(f.center(dbHelper.getSetting("header_text")));
             sb.append(f.separator());
 
             // Info transaksi
-            sb.append(f.left("Invoice  : #" + data.optString("invoice", "")));
+            sb.append(f.left(lblInvoice + data.optString("invoice", "")));
             String jam = data.optString("jam_transaksi", "");
             if (jam != null && jam.length() >= 5) jam = jam.substring(0, 5);
-            sb.append(f.left("Time     : " + data.optString("tanggal_transaksi", "") + " " + jam));
-            sb.append(f.left("Cashier  : " + data.optString("nama_lengkap", "")));
-            sb.append(f.left("Table    : " + data.optString("meja", "")));
+            sb.append(f.left(lblTime + data.optString("tanggal_transaksi", "") + " " + jam));
+            sb.append(f.left(lblCashier + data.optString("nama_lengkap", "")));
+            sb.append(f.left(lblTable + data.optString("meja", "")));
 
             String pembayaran = data.optString("pembayaran", "");
             if (pembayaran != null && !pembayaran.trim().isEmpty()) {
-                sb.append(f.left("Payment  : " + pembayaran));
+                sb.append(f.left(lblPayment + pembayaran));
             }
             sb.append(f.separator());
 
@@ -271,49 +293,49 @@ public class PrinterService extends Service {
             int totalExcange = parseIntSafe(data.optString("total_kembali", "0"));
 
             sb.append(f.separator());
-            sb.append(String.format("%-" + (paperWidth - 10) + "s %10s\n", "Subtotal", f.formatNumber(data.optString("total_pesanan", "0"))));
+            sb.append(String.format("%-" + (paperWidth - 10) + "s %10s\n", lblSubtotal, f.formatNumber(data.optString("total_pesanan", "0"))));
             // -- diskon item
             if (totalDiskon > 0) {
-                sb.append(String.format("%-" + (paperWidth - 10) + "s %10s\n", "Discount", f.formatNumber(String.valueOf(totalDiskon))));
+                sb.append(String.format("%-" + (paperWidth - 10) + "s %10s\n", lblDiscount, f.formatNumber(String.valueOf(totalDiskon))));
             }
             // -- potongan
             if (totalPotongan > 0) {
-                sb.append(String.format("%-" + (paperWidth - 10) + "s %10s\n", "Voucher Discount", f.formatNumber(String.valueOf(totalPotongan))));
+                sb.append(String.format("%-" + (paperWidth - 10) + "s %10s\n", lblVoucher, f.formatNumber(String.valueOf(totalPotongan))));
             }
             // -- service
             if (totalService > 0) {
-                sb.append(String.format("%-" + (paperWidth - 10) + "s %10s\n", "Service Charge (5%)", f.formatNumber(String.valueOf(totalService))));
+                sb.append(String.format("%-" + (paperWidth - 10) + "s %10s\n", lblService, f.formatNumber(String.valueOf(totalService))));
             }
             // -- ppn
             if (totalPPN > 0) {
-                sb.append(String.format("%-" + (paperWidth - 10) + "s %10s\n", "Tax (10%)", f.formatNumber(String.valueOf(totalPPN))));
+                sb.append(String.format("%-" + (paperWidth - 10) + "s %10s\n", lblTax, f.formatNumber(String.valueOf(totalPPN))));
             }
             // -- total dari sebelumnya
             if (total != totalGrand) {
-                sb.append(String.format("%-" + (paperWidth - 10) + "s %10s\n", "Total", f.formatNumber(String.valueOf(total))));
+                sb.append(String.format("%-" + (paperWidth - 10) + "s %10s\n", lblTotal, f.formatNumber(String.valueOf(total))));
             }
             // -- pembulatan
             if (rounding != 0) {
-                sb.append(String.format("%-" + (paperWidth - 10) + "s %10s\n", "Rounding", f.formatNumber(String.valueOf(rounding))));
+                sb.append(String.format("%-" + (paperWidth - 10) + "s %10s\n", lblRounding, f.formatNumber(String.valueOf(rounding))));
             }
             // -- total akhir
             sb.append(f.separator());
-            sb.append(String.format("%-" + (paperWidth - 10) + "s %10s\n", "TOTAL PAID", f.formatNumber(String.valueOf(totalGrand))));
+            sb.append(String.format("%-" + (paperWidth - 10) + "s %10s\n", lblTotalPaid, f.formatNumber(String.valueOf(totalGrand))));
 
             if (totalPaid != 0) {
-                sb.append(String.format("%-" + (paperWidth - 10) + "s %10s\n", "Paid", f.formatNumber(String.valueOf(totalPaid))));
+                sb.append(String.format("%-" + (paperWidth - 10) + "s %10s\n", lblPaid, f.formatNumber(String.valueOf(totalPaid))));
             }
             if (totalExcange > 0) {
-                sb.append(String.format("%-" + (paperWidth - 10) + "s %10s\n", "Exchange", f.formatNumber(String.valueOf(totalExcange))));
+                sb.append(String.format("%-" + (paperWidth - 10) + "s %10s\n", lblExchange, f.formatNumber(String.valueOf(totalExcange))));
             }
 
             sb.append(f.separator()).append(f.feed(1));
 
             if (pembayaran.trim().isEmpty()) {
-                sb.append(f.center("--- Tagihan Belum Dibayar ---\n"));
+                sb.append(f.center(lblUnpaid + "\n"));
             }
 
-            sb.append(f.center("THANK YOU\n"));
+            sb.append(f.center(lblThankYou + "\n"));
             sb.append(f.center(dbHelper.getSetting("footer_text")));
 
             // TODO: kirim ke PrinterService -> Bluetooth
@@ -335,6 +357,31 @@ public class PrinterService extends Service {
             EscPosFormatter f = new EscPosFormatter(paperWidth);
             StringBuilder sb = new StringBuilder();
 
+            String lang = dbHelper.getSetting("language");
+            boolean isIndo = "indonesia".equalsIgnoreCase(lang);
+
+            String lblTitle          = isIndo ? "LAPORAN PENJUALAN" : "SALES REPORT";
+            String lblFrom           = isIndo ? "Dari   : " : "From   : ";
+            String lblTo             = isIndo ? "Sampai : " : "To     : ";
+            String lblSales          = isIndo ? "PENJUALAN" : "SALES";
+            String lblSubtotal       = "Subtotal";
+            String lblDiscount       = isIndo ? "Diskon" : "Discount";
+            String lblVoucher        = isIndo ? "Potongan" : "Voucher Discount";
+            String lblService        = isIndo ? "Service (5%)" : "Service (5%)";
+            String lblTax            = isIndo ? "PPN (10%)" : "Tax (10%)";
+            String lblRounding       = isIndo ? "Pembulatan" : "Rounding";
+            String lblTotal          = "TOTAL";
+            String lblActualReceipt  = isIndo ? "PENERIMAAN AKTUAL" : "ACTUAL RECEIPT";
+            String lblCash           = isIndo ? "Tunai" : "Cash";
+            String lblActualTotal    = isIndo ? "TOTAL AKTUAL" : "ACTUAL TOTAL";
+            String lblUnpaid         = isIndo ? "BELUM DIBAYAR" : "UNPAID";
+            String lblShiftReceipt   = isIndo ? "PENERIMAAN PERGANTIAN SHIFT" : "SHIFT REPLACEMENT RECEIPT";
+            String lblShiftTotal     = isIndo ? "TOTAL DARI PERGANTIAN SHIFT" : "TOTAL SHIFT REPLACEMENT";
+            String lblSystemReceipt  = isIndo ? "PENERIMAAN SISTEM" : "SYSTEM RECEIPT";
+            String lblSysSales       = isIndo ? "Penjualan" : "Sales";
+            String lblSysReturn      = isIndo ? "Retur" : "Return";
+            String lblEndOfReport    = "=== END OF REPORT ===";
+
             // Load logo dari drawable
             byte[] logoBytes = null;
 
@@ -342,18 +389,18 @@ public class PrinterService extends Service {
             sb.append(f.center(dbHelper.getSetting("header_text")));
             sb.append(f.separator());
 
-            sb.append(f.center("LAPORAN PENJUALAN\n"));
+            sb.append(f.center(lblTitle + "\n"));
             JSONObject laporan = data.optJSONObject("laporan");
             if (laporan != null) {
-                sb.append(f.left("Dari   : " + laporan.optString("waktu_awal", "-")));
-                sb.append(f.left("Sampai : " + laporan.optString("waktu_akhir", "-")));
+                sb.append(f.left(lblFrom + laporan.optString("waktu_awal", "-")));
+                sb.append(f.left(lblTo + laporan.optString("waktu_akhir", "-")));
             }
             sb.append(f.separator());
 
             // === PENJUALAN ===
             JSONObject penjualan = data.optJSONObject("penjualan");
             if (penjualan != null) {
-                sb.append(f.center("PENJUALAN"));
+                sb.append(f.center(lblSales));
 
                 JSONArray items = penjualan.optJSONArray("items");
                 if (items != null) {
@@ -365,7 +412,7 @@ public class PrinterService extends Service {
                         String jenis = it.optString("jenis_produk", "").trim();
 
                         if (jenis.isEmpty()) {
-                            jenis = "Lainnya";
+                            jenis = isIndo ? "Lainnya" : "Others";
                         }
 
                         kategori.putIfAbsent(jenis, new ArrayList<>());
@@ -387,20 +434,20 @@ public class PrinterService extends Service {
                 sb.append(f.separator());
                 sb.append(f.center(laporan.optString("tanggal", "-")));
                 sb.append(f.center(laporan.optString("waktu_awal", "-") + " - " + laporan.optString("waktu_akhir", "-")));
-                sb.append(String.format("%-" + (paperWidth - 10) + "s %10s\n", "Subtotal",
+                sb.append(String.format("%-" + (paperWidth - 10) + "s %10s\n", lblSubtotal,
                         f.formatNumber(penjualan.optString("subtotal", "0"))));
-                sb.append(String.format("%-" + (paperWidth - 10) + "s %10s\n", "Diskon",
+                sb.append(String.format("%-" + (paperWidth - 10) + "s %10s\n", lblDiscount,
                         f.formatNumber(penjualan.optString("diskon", "0"))));
-                sb.append(String.format("%-" + (paperWidth - 10) + "s %10s\n", "Potongan",
+                sb.append(String.format("%-" + (paperWidth - 10) + "s %10s\n", lblVoucher,
                         f.formatNumber(penjualan.optString("potongan", "0"))));
-                sb.append(String.format("%-" + (paperWidth - 10) + "s %10s\n", "Service (5%)",
+                sb.append(String.format("%-" + (paperWidth - 10) + "s %10s\n", lblService,
                         f.formatNumber(penjualan.optString("service", "0"))));
-                sb.append(String.format("%-" + (paperWidth - 10) + "s %10s\n", "PPN (10%)",
+                sb.append(String.format("%-" + (paperWidth - 10) + "s %10s\n", lblTax,
                         f.formatNumber(penjualan.optString("ppn", "0"))));
-                sb.append(String.format("%-" + (paperWidth - 10) + "s %10s\n", "Pembulatan",
+                sb.append(String.format("%-" + (paperWidth - 10) + "s %10s\n", lblRounding,
                         f.formatNumber(penjualan.optString("pembulatan", "0"))));
                 sb.append(f.separator());
-                sb.append(String.format("%-" + (paperWidth - 10) + "s %10s\n", "TOTAL",
+                sb.append(String.format("%-" + (paperWidth - 10) + "s %10s\n", lblTotal,
                         f.formatNumber(penjualan.optString("total", "0"))));
             }
 
@@ -408,11 +455,11 @@ public class PrinterService extends Service {
             JSONObject penerimaanAktual = data.optJSONObject("penerimaan_aktual");
             if (penerimaanAktual != null) {
                 sb.append(f.separator());
-                sb.append(f.center("PENERIMAAN AKTUAL"));
+                sb.append(f.center(lblActualReceipt));
 
                 int tunai = penerimaanAktual.optInt("tunai", 0);
                 if (tunai > 0)
-                    sb.append(String.format("%-" + (paperWidth - 10) + "s %10s\n", "Tunai", f.formatNumber(String.valueOf(tunai))));
+                    sb.append(String.format("%-" + (paperWidth - 10) + "s %10s\n", lblCash, f.formatNumber(String.valueOf(tunai))));
 
                 int qris = penerimaanAktual.optInt("qris", 0);
                 if (qris > 0)
@@ -439,11 +486,11 @@ public class PrinterService extends Service {
                 }
 
                 sb.append(f.separator());
-                sb.append(String.format("%-" + (paperWidth - 10) + "s %10s\n", "TOTAL AKTUAL",
+                sb.append(String.format("%-" + (paperWidth - 10) + "s %10s\n", lblActualTotal,
                         f.formatNumber(penerimaanAktual.optString("total", "0"))));
 
                 sb.append(f.separator());
-                sb.append(String.format("%-" + (paperWidth - 10) + "s %10s\n", "BELUM DIBAYAR",
+                sb.append(String.format("%-" + (paperWidth - 10) + "s %10s\n", lblUnpaid,
                         f.formatNumber(penerimaanAktual.optString("belum_bayar", "0"))));
             }
 
@@ -466,10 +513,10 @@ public class PrinterService extends Service {
 
                 if (!kosong) {
                     sb.append(f.separator());
-                    sb.append(f.center("PENERIMAAN PERGANTIAN SHIFT")).append("\n");
+                    sb.append(f.center(lblShiftReceipt)).append("\n");
 
                     if (tunai2 > 0)
-                        sb.append(String.format("%-" + (paperWidth - 10) + "s %10s\n", "Tunai", f.formatNumber(String.valueOf(tunai2))));
+                        sb.append(String.format("%-" + (paperWidth - 10) + "s %10s\n", lblCash, f.formatNumber(String.valueOf(tunai2))));
 
                     if (qris2 > 0)
                         sb.append(String.format("%-" + (paperWidth - 10) + "s %10s\n", "QRIS", f.formatNumber(String.valueOf(qris2))));
@@ -497,7 +544,7 @@ public class PrinterService extends Service {
                     }
 
                     sb.append(f.separator());
-                    sb.append(String.format("%-" + (paperWidth - 10) + "s %10s\n", "TOTAL DARI PERGANTIAN SHIFT",
+                    sb.append(String.format("%-" + (paperWidth - 10) + "s %10s\n", lblShiftTotal,
                             f.formatNumber(penerimaanPergantian.optString("total", "0"))));
                 }
             }
@@ -506,15 +553,15 @@ public class PrinterService extends Service {
             JSONObject penerimaanSistem = data.optJSONObject("penerimaan_sistem");
             if (penerimaanSistem != null) {
                 sb.append(f.separator());
-                sb.append(f.center("PENERIMAAN SISTEM"));
-                sb.append(String.format("%-" + (paperWidth - 10) + "s %10s\n", "Penjualan",
+                sb.append(f.center(lblSystemReceipt));
+                sb.append(String.format("%-" + (paperWidth - 10) + "s %10s\n", lblSysSales,
                         f.formatNumber(penerimaanSistem.optString("penjualan", "0"))));
-                sb.append(String.format("%-" + (paperWidth - 10) + "s %10s\n", "Retur",
+                sb.append(String.format("%-" + (paperWidth - 10) + "s %10s\n", lblSysReturn,
                         f.formatNumber(penerimaanSistem.optString("retur", "0"))));
             }
 
             sb.append(f.separator()).append(f.feed(1));
-            sb.append(f.center("=== END OF REPORT ==="));
+            sb.append(f.center(lblEndOfReport));
 
             // kirim ke printer
             return printRaw(logoBytes, sb.toString());

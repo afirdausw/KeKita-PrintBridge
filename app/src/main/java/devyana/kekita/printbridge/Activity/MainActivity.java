@@ -42,7 +42,7 @@ public class MainActivity extends AppCompatActivity {
 
     private ImageView ivClientLogo;
     private TextView tvClientName, tvPrinter;
-    private MaterialButton btnStart, btnStop, btnChoose, btnPaperWidth;
+    private MaterialButton btnStart, btnStop, btnChoose;
 
     // launcher untuk membuka activity pilih device
     private ActivityResultLauncher<Intent> pickerLauncher;
@@ -76,7 +76,6 @@ public class MainActivity extends AppCompatActivity {
         btnStart = findViewById(R.id.btn_start_service);
         btnStop = findViewById(R.id.btn_stop_service);
         btnChoose = findViewById(R.id.btn_choose_device);
-        btnPaperWidth = findViewById(R.id.btn_paper_width);
 
         pickerLauncher = registerForActivityResult(new ActivityResultContracts.StartActivityForResult(), result -> refreshPrinterInfo());
 
@@ -91,7 +90,6 @@ public class MainActivity extends AppCompatActivity {
 
         btnStart.setOnClickListener(v -> startBridgeService());
         btnStop.setOnClickListener(v -> stopBridgeService());
-        btnPaperWidth.setOnClickListener(v -> showPaperWidthDialog());
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
             if (checkSelfPermission(Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED) {
@@ -158,24 +156,6 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-    private void showPaperWidthDialog() {
-        String[] options = {"58mm", "80mm"};
-        SharedPreferences prefs = getSharedPreferences(PREFS, MODE_PRIVATE);
-        String current = prefs.getString(KEY_PAPER_WIDTH, "58");
-        int checkedItem = current.equals("80") ? 1 : 0;
-
-        new AlertDialog.Builder(this)
-                .setTitle("Tentukan Lebar Kertas")
-                .setSingleChoiceItems(options, checkedItem, null)
-                .setPositiveButton("Simpan", (dialog, whichButton) -> {
-                    int selected = ((AlertDialog) dialog).getListView().getCheckedItemPosition();
-                    String width = selected == 0 ? "58" : "80";
-                    prefs.edit().putString(KEY_PAPER_WIDTH, width).apply();
-                    Toast.makeText(this, "Paper width set to " + width + "mm", Toast.LENGTH_SHORT).show();
-                })
-                .setNegativeButton("Batal", null)
-                .show();
-    }
 
     private void requestAllPermissions() {
         List<String> list = new ArrayList<>();

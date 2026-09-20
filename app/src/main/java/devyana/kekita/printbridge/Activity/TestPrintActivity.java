@@ -43,17 +43,24 @@ public class TestPrintActivity extends AppCompatActivity {
         }
 
         btnPrint = findViewById(R.id.btn_print);
-
         btnPrint.setOnClickListener(v -> doTestPrint());
+
+        updatePreview();
     }
 
     public void onBack(View view) {
         finish();
     }
 
-    private void doTestPrint() {
+    private void updatePreview() {
+        android.widget.TextView tvPreview = findViewById(R.id.tv_preview);
+        if (tvPreview != null) {
+            tvPreview.setText(generateReceiptString());
+        }
+    }
+
+    private String generateReceiptString() {
         try {
-            // JSON sample dari kamu
             String jsonStr = "{ \"menu\":\"Kasir\",\"title\":\"Print Struk #250823001\","
                     + "\"data\":{"
                     + "\"id_transaksi\":\"5\",\"tanggal_transaksi\":\"2025-06-09\",\"jam_transaksi\":\"12:30:27\","
@@ -74,31 +81,44 @@ public class TestPrintActivity extends AppCompatActivity {
             JSONObject data = root.getJSONObject("data");
             JSONArray items = root.getJSONArray("items");
 
-            // ambil lebar kertas dari prefs
             SharedPreferences prefs = getSharedPreferences(PREFS, MODE_PRIVATE);
             String widthStr = prefs.getString(KEY_PAPER_WIDTH, "58");
-            int paperWidth = widthStr.equals("80") ? 47 : 32;
+            int paperWidth = widthStr.equals("80") ? 45 : 31;
 
             EscPosFormatter f = new EscPosFormatter(paperWidth);
             StringBuilder sb = new StringBuilder();
 
-            // Header toko
+            devyana.kekita.printbridge.Helper.DatabaseHelper dbHelper = new devyana.kekita.printbridge.Helper.DatabaseHelper(this);
+            String lang = dbHelper.getSetting("language");
+            boolean isIndo = "indonesia".equalsIgnoreCase(lang);
+
+            String lblInvoice = isIndo ? "Invoice  : #" : "Invoice  : #";
+            String lblTime    = isIndo ? "Waktu    : " : "Time     : ";
+            String lblCashier = isIndo ? "Kasir    : " : "Cashier  : ";
+            String lblTable   = isIndo ? "Meja     : " : "Table    : ";
+
+            String lblSubtotal = "Subtotal";
+            String lblService  = isIndo ? "Layanan" : "Service";
+            String lblTax      = isIndo ? "Pajak" : "PPN";
+            String lblTotal    = "Total";
+            String lblRounding = isIndo ? "Pembulatan" : "Rounding";
+            String lblTotalPaid= isIndo ? "TOTAL DIBAYAR" : "TOTAL PAID";
+            String lblThankYou = isIndo ? "Terima Kasih" : "Thank You";
+
             sb.append(f.center("KeKita FnB"));
             sb.append(f.center("Gg. Gladak Serang 1 No.56"));
             sb.append(f.center("KOTA PROBOLINGGO"));
             sb.append(f.center("Open : Daily 09am-10pm"));
             sb.append(f.separator());
 
-            // Info transaksi
-            sb.append(f.left("Invoice  : #" + data.optString("invoice", "")));
+            sb.append(f.left(lblInvoice + data.optString("invoice", "")));
             String jam = data.optString("jam_transaksi", "");
             if (jam != null && jam.length() >= 5) jam = jam.substring(0, 5);
-            sb.append(f.left("Time     : " + data.optString("tanggal_transaksi", "") + " " + jam));
-            sb.append(f.left("Cashier  : " + data.optString("nama_lengkap", "")));
-            sb.append(f.left("Table    : " + data.optString("meja", "")));
+            sb.append(f.left(lblTime + data.optString("tanggal_transaksi", "") + " " + jam));
+            sb.append(f.left(lblCashier + data.optString("nama_lengkap", "")));
+            sb.append(f.left(lblTable + data.optString("meja", "")));
             sb.append(f.separator());
 
-            // Items
             for (int i = 0; i < items.length(); i++) {
                 JSONObject it = items.getJSONObject(i);
                 String name = it.optString("nama_produk", "");
@@ -118,30 +138,36 @@ public class TestPrintActivity extends AppCompatActivity {
                 }
             }
 
-            // Total
             sb.append(f.separator());
-            sb.append(String.format("%-" + (paperWidth-10) + "s %10s\n", "Subtotal", f.formatNumber(data.optString("total_pesanan","0"))));
-            sb.append(String.format("%-" + (paperWidth-10) + "s %10s\n", "Service", f.formatNumber(data.optString("total_service","0"))));
-            sb.append(String.format("%-" + (paperWidth-10) + "s %10s\n", "Tax", f.formatNumber(data.optString("total_ppn","0"))));
-            sb.append(String.format("%-" + (paperWidth-10) + "s %10s\n", "Total", f.formatNumber(data.optString("total","0"))));
-            sb.append(String.format("%-" + (paperWidth-10) + "s %10s\n", "Rounding", f.formatNumber(data.optString("nilai_pembulatan","0"))));
+            sb.append(String.format("%-" + (paperWidth-10) + "s %10s\n", lblSubtotal, f.formatNumber(data.optString("total_pesanan","0"))));
+            sb.append(String.format("%-" + (paperWidth-10) + "s %10s\n", lblService, f.formatNumber(data.optString("total_service","0"))));
+            sb.append(String.format("%-" + (paperWidth-10) + "s %10s\n", lblTax, f.formatNumber(data.optString("total_ppn","0"))));
+            sb.append(String.format("%-" + (paperWidth-10) + "s %10s\n", lblTotal, f.formatNumber(data.optString("total","0"))));
+            sb.append(String.format("%-" + (paperWidth-10) + "s %10s\n", lblRounding, f.formatNumber(data.optString("nilai_pembulatan","0"))));
             sb.append(f.separator());
-            sb.append(String.format("%-" + (paperWidth-10) + "s %10s\n", "TOTAL PAID", f.formatNumber(data.optString("total_harus_dibayar","0"))));
+            sb.append(String.format("%-" + (paperWidth-10) + "s %10s\n", lblTotalPaid, f.formatNumber(data.optString("total_harus_dibayar","0"))));
             sb.append(f.separator());
-            sb.append(f.center("Thank You"));
+            sb.append(f.center(lblThankYou));
             sb.append(f.center("# Instagram : @kekita.agency"));
             sb.append(f.center("# Wifi Password : trustME!"));
 
-            // debug ke logcat
-            Log.d(TAG, "Print buffer:\n" + sb);
+            return sb.toString();
+        } catch (Exception e) {
+            Log.e(TAG, "Error generating receipt string", e);
+            return "Error generating preview: " + e.getMessage();
+        }
+    }
 
-            // TODO: kirim ke PrinterService -> Bluetooth
+    private void doTestPrint() {
+        try {
+            String receiptStr = generateReceiptString();
+            Log.d(TAG, "Print buffer:\n" + receiptStr);
+
             Toast.makeText(this, "Print data siap", Toast.LENGTH_SHORT).show();
 
-            // kirim ke PrinterService
             Intent i = new Intent(this, PrinterService.class);
             i.setAction(PrinterService.ACTION_PRINT);
-            i.putExtra("text", sb.toString());
+            i.putExtra("text", receiptStr);
             startService(i);
         } catch (Exception e) {
             Log.e(TAG, "Error test print", e);
