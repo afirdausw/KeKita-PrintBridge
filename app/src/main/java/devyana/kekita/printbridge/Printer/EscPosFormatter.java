@@ -62,6 +62,13 @@ public class EscPosFormatter {
         return String.format("%-" + (paperWidth - 10) + "s %10s", qtyName, formatNumber(priceStr));
     }
 
+    public String formatItemT2(String name, int qty, int subtotal) {
+        String nameQty = name + " x" + qty;
+        if (nameQty.length() > paperWidth - 10) nameQty = nameQty.substring(0, paperWidth - 10);
+        String priceStr = String.valueOf(subtotal);
+        return String.format("%-" + (paperWidth - 10) + "s %10s", nameQty, formatNumber(priceStr));
+    }
+
     public String formatRecapItem(EscPosFormatter f, JSONObject it) {
         String name = it.optString("produk_nama", "");
         String varian = it.optString("produk_varian", "");

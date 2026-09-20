@@ -62,24 +62,24 @@ public class SettingsActivity extends AppCompatActivity {
         });
 
         // Setup Template Dropdown
-        String[] templates = {"Default / Saat Ini", "Soon"};
+        String[] templates = {"Template #1", "Template #2"};
         android.widget.ArrayAdapter<String> tempAdapter = new android.widget.ArrayAdapter<>(this, android.R.layout.simple_dropdown_item_1line, templates);
         autocompleteTemplate.setAdapter(tempAdapter);
 
         String savedTemp = dbHelper.getSetting("template");
-        if ("soon".equals(savedTemp)) {
+        if ("template_2".equals(savedTemp)) {
             autocompleteTemplate.setText(templates[1], false);
         } else {
-            autocompleteTemplate.setText(templates[0], false); // Default
+            autocompleteTemplate.setText(templates[0], false); // Default Template #1
         }
 
         autocompleteTemplate.setOnItemClickListener(new android.widget.AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(android.widget.AdapterView<?> parent, View view, int position, long id) {
                 if (position == 0) {
-                    dbHelper.saveSetting("template", "default");
+                    dbHelper.saveSetting("template", "template_1");
                 } else {
-                    dbHelper.saveSetting("template", "soon");
+                    dbHelper.saveSetting("template", "template_2");
                 }
                 updatePreview();
             }
@@ -137,92 +137,10 @@ public class SettingsActivity extends AppCompatActivity {
 
             android.content.SharedPreferences prefs = getSharedPreferences(devyana.kekita.printbridge.Printer.PrinterService.PREFS, MODE_PRIVATE);
             String widthStr = prefs.getString(devyana.kekita.printbridge.Printer.PrinterService.KEY_PAPER_WIDTH, "58");
-            // Sama dengan logika di PrinterService dan TestPrintActivity
-            int paperWidth = widthStr.equals("80") ? 45 : 31; // atau 47/32, disamakan dengan PrinterService
+            int paperWidth = widthStr.equals("80") ? 45 : 31;
 
-            devyana.kekita.printbridge.Printer.EscPosFormatter f = new devyana.kekita.printbridge.Printer.EscPosFormatter(paperWidth);
-            StringBuilder sb = new StringBuilder();
-
-            String lang = dbHelper.getSetting("language");
-            boolean isIndo = "indonesia".equalsIgnoreCase(lang);
-
-            String lblInvoice = isIndo ? "Invoice  : #" : "Invoice  : #";
-            String lblTime    = isIndo ? "Waktu    : " : "Time     : ";
-            String lblCashier = isIndo ? "Kasir    : " : "Cashier  : ";
-            String lblTable   = isIndo ? "Meja     : " : "Table    : ";
-            String lblPayment = isIndo ? "Pembayaran:" : "Payment  : ";
-
-            String lblSubtotal = "Subtotal";
-            String lblDiscount = isIndo ? "Diskon" : "Discount";
-            String lblVoucher  = isIndo ? "Potongan Voucher" : "Voucher Discount";
-            String lblService  = isIndo ? "Layanan (5%)" : "Service Charge (5%)";
-            String lblTax      = isIndo ? "Pajak (10%)" : "PPN (10%)";
-            String lblTotal    = "Total";
-            String lblRounding = isIndo ? "Pembulatan" : "Rounding";
-            String lblTotalPaid= isIndo ? "TOTAL DIBAYAR" : "TOTAL PAID";
-            String lblPaid     = isIndo ? "Dibayar" : "Paid";
-            String lblExchange = isIndo ? "Kembali" : "Exchange";
-            String lblThankYou = isIndo ? "TERIMA KASIH" : "THANK YOU";
-
-            sb.append(f.center("KeKita FnB"));
-            sb.append(f.center("PREVIEW MODE"));
-            sb.append(f.separator());
-
-            sb.append(f.left(lblInvoice + data.optString("invoice", "")));
-            String jam = data.optString("jam_transaksi", "");
-            if (jam != null && jam.length() >= 5) jam = jam.substring(0, 5);
-            sb.append(f.left(lblTime + data.optString("tanggal_transaksi", "") + " " + jam));
-            sb.append(f.left(lblCashier + data.optString("nama_lengkap", "")));
-            sb.append(f.left(lblTable + data.optString("meja", "")));
-            sb.append(f.separator());
-
-            for (int i = 0; i < items.length(); i++) {
-                org.json.JSONObject it = items.getJSONObject(i);
-                String name = it.optString("nama_produk", "");
-                String varian = it.optString("nama_varian", "");
-                String note = it.optString("catatan_item", "");
-                int qty = parseIntSafe(it.optString("jumlah_produk","0"));
-                int subtotal = parseIntSafe(it.optString("subtotal","0"));
-
-                if (varian != null && !"null".equals(varian) && !varian.isEmpty()) {
-                    name += " - " + varian;
-                }
-
-                sb.append(f.formatItem(name, qty, subtotal)).append("\n");
-
-                if (note != null && !"null".equals(note) && !note.isEmpty()) {
-                    sb.append(f.subLine(note));
-                }
-            }
-
-            int totalDiskon = parseIntSafe(data.optString("total_diskon", "0"));
-            int totalPotongan = parseIntSafe(data.optString("total_potongan", "0"));
-            int totalService = parseIntSafe(data.optString("total_service", "0"));
-            int totalPPN = parseIntSafe(data.optString("total_ppn", "0"));
-            int total = parseIntSafe(data.optString("total", "0"));
-            int rounding = parseIntSafe(data.optString("nilai_pembulatan", "0"));
-            int totalGrand = parseIntSafe(data.optString("total_harus_dibayar", "0"));
-            int totalPaid = parseIntSafe(data.optString("bayar", "0"));
-
-            sb.append(f.separator());
-            sb.append(String.format("%-" + (paperWidth - 10) + "s %10s\n", lblSubtotal, f.formatNumber(data.optString("total_pesanan", "0"))));
-            if (totalDiskon > 0) sb.append(String.format("%-" + (paperWidth - 10) + "s %10s\n", lblDiscount, f.formatNumber(String.valueOf(totalDiskon))));
-            if (totalPotongan > 0) sb.append(String.format("%-" + (paperWidth - 10) + "s %10s\n", lblVoucher, f.formatNumber(String.valueOf(totalPotongan))));
-            if (totalService > 0) sb.append(String.format("%-" + (paperWidth - 10) + "s %10s\n", lblService, f.formatNumber(String.valueOf(totalService))));
-            if (totalPPN > 0) sb.append(String.format("%-" + (paperWidth - 10) + "s %10s\n", lblTax, f.formatNumber(String.valueOf(totalPPN))));
-            if (total != totalGrand) sb.append(String.format("%-" + (paperWidth - 10) + "s %10s\n", lblTotal, f.formatNumber(String.valueOf(total))));
-            if (rounding != 0) sb.append(String.format("%-" + (paperWidth - 10) + "s %10s\n", lblRounding, f.formatNumber(String.valueOf(rounding))));
-
-            sb.append(f.separator());
-            sb.append(String.format("%-" + (paperWidth - 10) + "s %10s\n", lblTotalPaid, f.formatNumber(String.valueOf(totalGrand))));
-            if (totalPaid != 0) {
-                sb.append(String.format("%-" + (paperWidth - 10) + "s %10s\n", lblPaid, f.formatNumber(String.valueOf(totalPaid))));
-            }
-
-            sb.append(f.separator());
-            sb.append(f.center(lblThankYou));
-
-            tvPreview.setText(sb.toString());
+            String receiptStr = devyana.kekita.printbridge.Helper.ReceiptBuilder.buildReceiptString(jsonStr, paperWidth, dbHelper);
+            tvPreview.setText(receiptStr);
 
         } catch (Exception e) {
             e.printStackTrace();

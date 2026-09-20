@@ -54,6 +54,18 @@ public class TestPrintActivity extends AppCompatActivity {
 
     private void updatePreview() {
         android.widget.TextView tvPreview = findViewById(R.id.tv_preview);
+        android.widget.TextView tvTemplateName = findViewById(R.id.tv_template_name);
+
+        devyana.kekita.printbridge.Helper.DatabaseHelper dbHelper = new devyana.kekita.printbridge.Helper.DatabaseHelper(this);
+        String savedTemp = dbHelper.getSetting("template");
+        if (tvTemplateName != null) {
+            if ("template_2".equals(savedTemp)) {
+                tvTemplateName.setText("Template #2");
+            } else {
+                tvTemplateName.setText("Template #1");
+            }
+        }
+
         if (tvPreview != null) {
             tvPreview.setText(generateReceiptString());
         }
@@ -77,81 +89,12 @@ public class TestPrintActivity extends AppCompatActivity {
                     + "{\"id_detail_transaksi\":\"19\",\"nama_produk\":\"Chicken Cordon Bleu\",\"jumlah_produk\":\"1\",\"subtotal\":\"50000\"}"
                     + "]}";
 
-            JSONObject root = new JSONObject(jsonStr);
-            JSONObject data = root.getJSONObject("data");
-            JSONArray items = root.getJSONArray("items");
-
             SharedPreferences prefs = getSharedPreferences(PREFS, MODE_PRIVATE);
             String widthStr = prefs.getString(KEY_PAPER_WIDTH, "58");
             int paperWidth = widthStr.equals("80") ? 45 : 31;
 
-            EscPosFormatter f = new EscPosFormatter(paperWidth);
-            StringBuilder sb = new StringBuilder();
-
             devyana.kekita.printbridge.Helper.DatabaseHelper dbHelper = new devyana.kekita.printbridge.Helper.DatabaseHelper(this);
-            String lang = dbHelper.getSetting("language");
-            boolean isIndo = "indonesia".equalsIgnoreCase(lang);
-
-            String lblInvoice = isIndo ? "Invoice  : #" : "Invoice  : #";
-            String lblTime    = isIndo ? "Waktu    : " : "Time     : ";
-            String lblCashier = isIndo ? "Kasir    : " : "Cashier  : ";
-            String lblTable   = isIndo ? "Meja     : " : "Table    : ";
-
-            String lblSubtotal = "Subtotal";
-            String lblService  = isIndo ? "Layanan" : "Service";
-            String lblTax      = isIndo ? "Pajak" : "PPN";
-            String lblTotal    = "Total";
-            String lblRounding = isIndo ? "Pembulatan" : "Rounding";
-            String lblTotalPaid= isIndo ? "TOTAL DIBAYAR" : "TOTAL PAID";
-            String lblThankYou = isIndo ? "Terima Kasih" : "Thank You";
-
-            sb.append(f.center("KeKita FnB"));
-            sb.append(f.center("Gg. Gladak Serang 1 No.56"));
-            sb.append(f.center("KOTA PROBOLINGGO"));
-            sb.append(f.center("Open : Daily 09am-10pm"));
-            sb.append(f.separator());
-
-            sb.append(f.left(lblInvoice + data.optString("invoice", "")));
-            String jam = data.optString("jam_transaksi", "");
-            if (jam != null && jam.length() >= 5) jam = jam.substring(0, 5);
-            sb.append(f.left(lblTime + data.optString("tanggal_transaksi", "") + " " + jam));
-            sb.append(f.left(lblCashier + data.optString("nama_lengkap", "")));
-            sb.append(f.left(lblTable + data.optString("meja", "")));
-            sb.append(f.separator());
-
-            for (int i = 0; i < items.length(); i++) {
-                JSONObject it = items.getJSONObject(i);
-                String name = it.optString("nama_produk", "");
-                String varian = it.optString("nama_varian", "");
-                String note = it.optString("catatan_item", "");
-                int qty = parseIntSafe(it.optString("jumlah_produk","0"));
-                int subtotal = parseIntSafe(it.optString("subtotal","0"));
-
-                if (varian != null && !"null".equals(varian) && !varian.isEmpty()) {
-                    name += " - " + varian;
-                }
-
-                sb.append(f.formatItem(name, qty, subtotal)).append("\n");
-
-                if (note != null && !"null".equals(note) && !note.isEmpty()) {
-                    sb.append(f.subLine(note));
-                }
-            }
-
-            sb.append(f.separator());
-            sb.append(String.format("%-" + (paperWidth-10) + "s %10s\n", lblSubtotal, f.formatNumber(data.optString("total_pesanan","0"))));
-            sb.append(String.format("%-" + (paperWidth-10) + "s %10s\n", lblService, f.formatNumber(data.optString("total_service","0"))));
-            sb.append(String.format("%-" + (paperWidth-10) + "s %10s\n", lblTax, f.formatNumber(data.optString("total_ppn","0"))));
-            sb.append(String.format("%-" + (paperWidth-10) + "s %10s\n", lblTotal, f.formatNumber(data.optString("total","0"))));
-            sb.append(String.format("%-" + (paperWidth-10) + "s %10s\n", lblRounding, f.formatNumber(data.optString("nilai_pembulatan","0"))));
-            sb.append(f.separator());
-            sb.append(String.format("%-" + (paperWidth-10) + "s %10s\n", lblTotalPaid, f.formatNumber(data.optString("total_harus_dibayar","0"))));
-            sb.append(f.separator());
-            sb.append(f.center(lblThankYou));
-            sb.append(f.center("# Instagram : @kekita.agency"));
-            sb.append(f.center("# Wifi Password : trustME!"));
-
-            return sb.toString();
+            return devyana.kekita.printbridge.Helper.ReceiptBuilder.buildReceiptString(jsonStr, paperWidth, dbHelper);
         } catch (Exception e) {
             Log.e(TAG, "Error generating receipt string", e);
             return "Error generating preview: " + e.getMessage();
