@@ -38,6 +38,7 @@ public class ReceiptBuilder {
 
             String template = dbHelper.getSetting("template");
             boolean isTemplate2 = "template_2".equals(template);
+            boolean isTemplate3 = "template_3".equals(template);
             
             EscPosFormatter f = new EscPosFormatter(paperWidth);
             StringBuilder sb = new StringBuilder();
@@ -45,24 +46,24 @@ public class ReceiptBuilder {
             String lang = dbHelper.getSetting("language");
             boolean isIndo = "indonesia".equalsIgnoreCase(lang);
 
-            String lblInvoice = isIndo ? (isTemplate2 ? "Kode struk : " : "Invoice    : ") : (isTemplate2 ? "Invoice : " : "Invoice  : ");
-            String lblTime    = isIndo ? (isTemplate2 ? "Tanggal : " : "Waktu      : ") : (isTemplate2 ? "Time : " : "Time     : ");
-            String lblCashier = isIndo ? (isTemplate2 ? "Kasir : " : "Kasir      : ") : (isTemplate2 ? "Cashier : " : "Cashier  : ");
-            String lblTable   = isIndo ? (isTemplate2 ? "No Meja : " : "Meja       : ") : (isTemplate2 ? "Table : " : "Table    : ");
-            String lblPayment = isIndo ? (isTemplate2 ? "Pembayaran: " : "Pembayaran : ") : (isTemplate2 ? "Payment : " : "Payment  : ");
+            String lblInvoice = isTemplate3 ? "Kode Struk : " : (isIndo ? (isTemplate2 ? "Kode struk : " : "Invoice    : ") : (isTemplate2 ? "Invoice : " : "Invoice  : "));
+            String lblTime    = isTemplate3 ? "Tanggal : " : (isIndo ? (isTemplate2 ? "Tanggal : " : "Waktu      : ") : (isTemplate2 ? "Time : " : "Time     : "));
+            String lblCashier = isTemplate3 ? "Kasir : " : (isIndo ? (isTemplate2 ? "Kasir : " : "Kasir      : ") : (isTemplate2 ? "Cashier : " : "Cashier  : "));
+            String lblTable   = isTemplate3 ? "No Meja : " : (isIndo ? (isTemplate2 ? "No Meja : " : "Meja       : ") : (isTemplate2 ? "Table : " : "Table    : "));
+            String lblPayment = isTemplate3 ? "Pembayaran: " : (isIndo ? (isTemplate2 ? "Pembayaran: " : "Pembayaran : ") : (isTemplate2 ? "Payment : " : "Payment  : "));
 
-            String lblDiscount = isIndo ? "Diskon" : "Discount";
-            String lblVoucher  = isIndo ? "Potongan Voucher" : "Voucher Discount";
-            String lblService  = isIndo ? "Layanan (5%)" : "Service Charge (5%)";
-            String lblTax      = isIndo ? "PPN (10%)" : "PPN (10%)";
+            String lblDiscount = isTemplate3 ? "Diskon" : (isIndo ? "Diskon" : "Discount");
+            String lblVoucher  = isTemplate3 ? "Potongan Voucher" : (isIndo ? "Potongan Voucher" : "Voucher Discount");
+            String lblService  = isTemplate3 ? "Service Charge (5%)" : (isIndo ? "Layanan (5%)" : "Service Charge (5%)");
+            String lblTax      = isTemplate3 ? "PPN (10%)" : (isIndo ? "PPN (10%)" : "PPN (10%)");
             String lblTotal    = "Total";
-            String lblRounding = isIndo ? "Pembulatan" : "Rounding";
-            String lblTotalPaid= isIndo ? "TOTAL DIBAYAR" : "TOTAL PAID";
-            String lblPaid     = isIndo ? "Dibayar" : "Paid";
-            String lblExchange = isIndo ? "Kembali" : "Exchange";
-            String lblUnpaid   = isIndo ? "--- Tagihan Belum Dibayar ---" : "--- Unpaid Bill ---";
-            String lblpaidBt   = isIndo ? "*** Lunas ***" : "*** Paid ***";
-            String lblThankYou = isIndo ? "TERIMA KASIH" : "THANK YOU";
+            String lblRounding = isTemplate3 ? "Pembulatan" : (isIndo ? "Pembulatan" : "Rounding");
+            String lblTotalPaid= isTemplate3 ? "Total" : (isIndo ? "TOTAL DIBAYAR" : "TOTAL PAID");
+            String lblPaid     = isTemplate3 ? "Dibayar" : (isIndo ? "Dibayar" : "Paid");
+            String lblExchange = isTemplate3 ? "kembali" : (isIndo ? "Kembali" : "Exchange");
+            String lblUnpaid   = isTemplate3 ? "--- Tagihan Belum Dibayar ---" : (isIndo ? "--- Tagihan Belum Dibayar ---" : "--- Unpaid Bill ---");
+            String lblpaidBt   = isTemplate3 ? "*** Lunas ***" : (isIndo ? "*** Lunas ***" : "*** Paid ***");
+            String lblThankYou = isTemplate3 ? "TERIMA KASIH" : (isIndo ? "TERIMA KASIH" : "THANK YOU");
 
             int totalItemCount = 0;
             if (items != null) {
@@ -71,10 +72,10 @@ public class ReceiptBuilder {
                     totalItemCount += parseIntSafe(it.optString("jumlah_produk", "0"));
                 }
             }
-            String lblSubtotal = isTemplate2 ? ("Subtotal x" + totalItemCount) : "Subtotal";
+            String lblSubtotal = (isTemplate2 || isTemplate3) ? ("Subtotal x" + totalItemCount) : "Subtotal";
 
             // === HEADER ===
-            if (isTemplate2) {
+            if (isTemplate2 || isTemplate3) {
                 sb.append(f.center(dbHelper.getSetting("header_text"))).append("\n");
                 // Tidak ada garis separator
             } else {
@@ -84,7 +85,7 @@ public class ReceiptBuilder {
 
             // Info transaksi
             String rawInvoice = "#" + data.optString("invoice", "");
-            if (isTemplate2) {
+            if (isTemplate2 || isTemplate3) {
                 try {
                     MessageDigest md = MessageDigest.getInstance("MD5");
                     md.update(rawInvoice.getBytes());
@@ -97,20 +98,25 @@ public class ReceiptBuilder {
                 } catch (Exception e) {
                     rawInvoice = rawInvoice.toUpperCase();
                 }
-                if (rawInvoice.length() > 12) {
-                    rawInvoice = rawInvoice.substring(0, 12);
+                if (rawInvoice.length() > 13) {
+                    rawInvoice = rawInvoice.substring(0, 13);
                 }
             }
             sb.append(f.left(lblInvoice + rawInvoice));
             
             String jam = data.optString("jam_transaksi", "");
-            if (jam != null && jam.length() >= 5) jam = jam.substring(0, 5);
 
-            if (isTemplate2) {
+            if (isTemplate3) {
+                sb.append(f.left(lblTable + data.optString("meja", "")));
+                sb.append(f.left(lblTime + data.optString("tanggal_transaksi", "") + " " + jam));
+                sb.append(f.left(lblCashier + data.optString("nama_lengkap", "")));
+            } else if (isTemplate2) {
+                if (jam != null && jam.length() >= 5) jam = jam.substring(0, 5);
                 sb.append(f.left(lblTable + data.optString("meja", "")));
                 sb.append(f.left(lblTime + data.optString("tanggal_transaksi", "") + " " + jam));
                 sb.append(f.left(lblCashier + data.optString("nama_lengkap", "")));
             } else {
+                if (jam != null && jam.length() >= 5) jam = jam.substring(0, 5);
                 sb.append(f.left(lblTime + data.optString("tanggal_transaksi", "") + " " + jam));
                 sb.append(f.left(lblCashier + data.optString("nama_lengkap", "")));
                 sb.append(f.left(lblTable + data.optString("meja", "")));
@@ -123,7 +129,7 @@ public class ReceiptBuilder {
             
             boolean isCardOrEdc = pembayaran.toLowerCase().contains("card") || pembayaran.toLowerCase().contains("edc") || pembayaran.toLowerCase().contains("qris") || pembayaran.toLowerCase().contains("kartu") || pembayaran.toLowerCase().contains("transfer");
             
-            if (!isTemplate2) {
+            if (!isTemplate2 && !isTemplate3) {
                 if (pembayaran != null && !pembayaran.trim().isEmpty()) {
                     sb.append(f.left(lblPayment + pembayaran));
                 }
@@ -144,14 +150,14 @@ public class ReceiptBuilder {
                         name += " - " + varian;
                     }
 
-                    if (isTemplate2) {
+                    if (isTemplate2 || isTemplate3) {
                         sb.append(f.formatItemT2(name, qty, subtotal)).append("\n");
                     } else {
                         sb.append(f.formatItem(name, qty, subtotal)).append("\n");
                     }
 
                     if (note != null && !"null".equals(note) && !note.isEmpty()) {
-                        if (isTemplate2) {
+                        if (isTemplate2 || isTemplate3) {
                             sb.append(f.left("(" + note + ")"));
                         } else {
                             sb.append(f.subLine(note));
@@ -181,15 +187,21 @@ public class ReceiptBuilder {
             if (totalPotongan > 0) sb.append(String.format("%-" + (paperWidth - 10) + "s %10s\n", lblVoucher, f.formatNumber(String.valueOf(totalPotongan))));
             if (totalService > 0) sb.append(String.format("%-" + (paperWidth - 10) + "s %10s\n", lblService, f.formatNumber(String.valueOf(totalService))));
             if (totalPPN > 0) sb.append(String.format("%-" + (paperWidth - 10) + "s %10s\n", lblTax, f.formatNumber(String.valueOf(totalPPN))));
-            if (total != totalGrand) sb.append(String.format("%-" + (paperWidth - 10) + "s %10s\n", lblTotal, f.formatNumber(String.valueOf(total))));
+            if (!isTemplate3 && total != totalGrand) sb.append(String.format("%-" + (paperWidth - 10) + "s %10s\n", lblTotal, f.formatNumber(String.valueOf(total))));
             if (rounding != 0) sb.append(String.format("%-" + (paperWidth - 10) + "s %10s\n", lblRounding, f.formatNumber(String.valueOf(rounding))));
             
             sb.append(f.separator());
             sb.append(String.format("%-" + (paperWidth - 10) + "s %10s\n", lblTotalPaid, f.formatNumber(String.valueOf(totalGrand))));
 
-            if (isTemplate2 && isCardOrEdc) {
+            if (isTemplate3) {
+                sb.append(f.feed(1));
+                sb.append(String.format("%-" + (paperWidth - 10) + "s %10s\n", (pembayaran != null && !pembayaran.isEmpty() ? pembayaran : "Tunai"), f.formatNumber(String.valueOf(totalPaid))));
+                if (pembayaran != null || !pembayaran.trim().isEmpty()) {
+                    sb.append(String.format("%-" + (paperWidth - 10) + "s %10s\n", lblExchange, f.formatNumber(String.valueOf(totalExcange))));
+                }
+            } else if (isTemplate2 && isCardOrEdc) {
                 sb.append(String.format("%-" + (paperWidth - 10) + "s %10s\n", pembayaran, f.formatNumber(String.valueOf(totalPaid))));
-                sb.append(String.format("%-" + (paperWidth - 10) + "s %10s\n", "Kembali", f.formatNumber("0")));
+                sb.append(String.format("%-" + (paperWidth - 10) + "s %10s\n", lblExchange, f.formatNumber("0")));
             } else {
                 if (totalPaid != 0) {
                     sb.append(String.format("%-" + (paperWidth - 10) + "s %10s\n", lblPaid, f.formatNumber(String.valueOf(totalPaid))));
@@ -199,7 +211,10 @@ public class ReceiptBuilder {
                 }
             }
 
-            sb.append(f.separator()).append(f.feed(1));
+            if (!isTemplate3) {
+                sb.append(f.separator());
+            }
+            sb.append(f.feed(1));
 
             if (pembayaran == null || pembayaran.trim().isEmpty()) {
                 sb.append(f.center(lblUnpaid + "\n"));

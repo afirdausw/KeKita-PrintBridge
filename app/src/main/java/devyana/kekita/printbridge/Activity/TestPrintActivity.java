@@ -68,14 +68,20 @@ public class TestPrintActivity extends AppCompatActivity {
         String langStr = "indonesia".equalsIgnoreCase(savedLang) ? "Indonesia" : "English";
         
         String savedTemp = dbHelper.getSetting("template");
-        String tempStr = "template_2".equals(savedTemp) ? "Template #2" : "Template #1";
+        String tempStr = "Template #1";
+        if ("template_2".equals(savedTemp)) tempStr = "Template #2";
+        else if ("template_3".equals(savedTemp)) tempStr = "Template #3";
 
         android.content.SharedPreferences prefs = getSharedPreferences(devyana.kekita.printbridge.Printer.PrinterService.PREFS, MODE_PRIVATE);
         String widthStr = prefs.getString(devyana.kekita.printbridge.Printer.PrinterService.KEY_PAPER_WIDTH, "58");
         String paperStr = widthStr.equals("80") ? "80mm" : "58mm";
         
         if (tvTemplateName != null) {
-            tvTemplateName.setText(langStr + ", " + tempStr + ", " + paperStr);
+            if ("template_3".equals(savedTemp)) {
+                tvTemplateName.setText("Campuran, " + tempStr + ", " + paperStr);
+            } else {
+                tvTemplateName.setText(langStr + ", " + tempStr + ", " + paperStr);
+            }
         }
 
         if (tvPreview != null) {

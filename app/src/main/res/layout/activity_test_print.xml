@@ -66,7 +66,7 @@
             android:background="@drawable/bg_info_box"
             android:gravity="center"
             android:padding="8dp"
-            android:text="Template #1"
+            android:text="English, Template #1, 58mm"
             android:textColor="#555"
             android:textSize="14sp" />
 

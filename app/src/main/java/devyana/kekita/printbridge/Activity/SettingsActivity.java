@@ -68,15 +68,22 @@ public class SettingsActivity extends AppCompatActivity {
         });
 
         // Setup Template Dropdown
-        String[] templates = {"Template #1", "Template #2"};
+        String[] templates = {"Template #1", "Template #2", "Template #3"};
         android.widget.ArrayAdapter<String> tempAdapter = new android.widget.ArrayAdapter<>(this, android.R.layout.simple_dropdown_item_1line, templates);
         autocompleteTemplate.setAdapter(tempAdapter);
 
         String savedTemp = dbHelper.getSetting("template");
-        if ("template_2".equals(savedTemp)) {
+        View layoutLanguage = findViewById(R.id.layout_language);
+
+        if ("template_3".equals(savedTemp)) {
+            autocompleteTemplate.setText(templates[2], false);
+            if (layoutLanguage != null) layoutLanguage.setVisibility(View.GONE);
+        } else if ("template_2".equals(savedTemp)) {
             autocompleteTemplate.setText(templates[1], false);
+            if (layoutLanguage != null) layoutLanguage.setVisibility(View.VISIBLE);
         } else {
             autocompleteTemplate.setText(templates[0], false); // Default Template #1
+            if (layoutLanguage != null) layoutLanguage.setVisibility(View.VISIBLE);
         }
 
         autocompleteTemplate.setOnItemClickListener(new android.widget.AdapterView.OnItemClickListener() {
@@ -84,8 +91,13 @@ public class SettingsActivity extends AppCompatActivity {
             public void onItemClick(android.widget.AdapterView<?> parent, View view, int position, long id) {
                 if (position == 0) {
                     dbHelper.saveSetting("template", "template_1");
-                } else {
+                    if (layoutLanguage != null) layoutLanguage.setVisibility(View.VISIBLE);
+                } else if (position == 1) {
                     dbHelper.saveSetting("template", "template_2");
+                    if (layoutLanguage != null) layoutLanguage.setVisibility(View.VISIBLE);
+                } else {
+                    dbHelper.saveSetting("template", "template_3");
+                    if (layoutLanguage != null) layoutLanguage.setVisibility(View.GONE);
                 }
                 updatePreview();
             }
