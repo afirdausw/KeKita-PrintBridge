@@ -48,6 +48,12 @@ public class TestPrintActivity extends AppCompatActivity {
         updatePreview();
     }
 
+    @Override
+    protected void onResume() {
+        super.onResume();
+        updatePreview();
+    }
+
     public void onBack(View view) {
         finish();
     }
@@ -57,13 +63,19 @@ public class TestPrintActivity extends AppCompatActivity {
         android.widget.TextView tvTemplateName = findViewById(R.id.tv_template_name);
 
         devyana.kekita.printbridge.Helper.DatabaseHelper dbHelper = new devyana.kekita.printbridge.Helper.DatabaseHelper(this);
+        
+        String savedLang = dbHelper.getSetting("language");
+        String langStr = "indonesia".equalsIgnoreCase(savedLang) ? "Indonesia" : "English";
+        
         String savedTemp = dbHelper.getSetting("template");
+        String tempStr = "template_2".equals(savedTemp) ? "Template #2" : "Template #1";
+
+        android.content.SharedPreferences prefs = getSharedPreferences(devyana.kekita.printbridge.Printer.PrinterService.PREFS, MODE_PRIVATE);
+        String widthStr = prefs.getString(devyana.kekita.printbridge.Printer.PrinterService.KEY_PAPER_WIDTH, "58");
+        String paperStr = widthStr.equals("80") ? "80mm" : "58mm";
+        
         if (tvTemplateName != null) {
-            if ("template_2".equals(savedTemp)) {
-                tvTemplateName.setText("Template #2");
-            } else {
-                tvTemplateName.setText("Template #1");
-            }
+            tvTemplateName.setText(langStr + ", " + tempStr + ", " + paperStr);
         }
 
         if (tvPreview != null) {

@@ -44,6 +44,7 @@ import java.util.concurrent.TimeUnit;
 import devyana.kekita.printbridge.Helper.DatabaseHelper;
 import devyana.kekita.printbridge.Helper.EscPosImageHelper;
 import devyana.kekita.printbridge.Activity.MainActivity;
+import devyana.kekita.printbridge.Helper.ReceiptBuilder;
 import devyana.kekita.printbridge.R;
 
 public class PrinterService extends Service {
@@ -218,9 +219,10 @@ public class PrinterService extends Service {
                 logoBytes = EscPosImageHelper.decodeBitmap(logo);
             }
 
-            String receiptStr = devyana.kekita.printbridge.Helper.ReceiptBuilder.buildReceiptString(payloadJson, paperWidth, dbHelper);
+            String receiptStr = ReceiptBuilder.buildReceiptString(payloadJson, paperWidth, dbHelper);
 
             // TODO: kirim ke PrinterService -> Bluetooth
+            System.out.println(receiptStr);
             return printRaw(logoBytes, receiptStr);
         } catch (Exception e) {
             Log.e(TAG, "handlePayloadJson error", e);
@@ -241,6 +243,16 @@ public class PrinterService extends Service {
 
             String lang = dbHelper.getSetting("language");
             boolean isIndo = "indonesia".equalsIgnoreCase(lang);
+
+            String dynamicHeader = data.optString("setting_header", "");
+            String dynamicFooter = data.optString("setting_footer", "");
+
+            if (dynamicHeader != null && !dynamicHeader.trim().isEmpty() && !"null".equalsIgnoreCase(dynamicHeader)) {
+                dbHelper.saveSetting("header_text", dynamicHeader);
+            }
+            if (dynamicFooter != null && !dynamicFooter.trim().isEmpty() && !"null".equalsIgnoreCase(dynamicFooter)) {
+                dbHelper.saveSetting("footer_text", dynamicFooter);
+            }
 
             String lblTitle          = isIndo ? "LAPORAN PENJUALAN" : "SALES REPORT";
             String lblFrom           = isIndo ? "Dari   : " : "From   : ";

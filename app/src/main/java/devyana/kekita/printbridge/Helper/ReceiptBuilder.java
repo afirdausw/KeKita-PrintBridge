@@ -25,6 +25,17 @@ public class ReceiptBuilder {
                 if (items == null) items = new JSONArray();
             }
 
+            // Update header dan footer dinamis jika ada dari payload struk
+            String dynamicHeader = root.optString("setting_header", data.optString("setting_header", ""));
+            String dynamicFooter = root.optString("setting_footer", data.optString("setting_footer", ""));
+
+            if (dynamicHeader != null && !dynamicHeader.trim().isEmpty() && !"null".equalsIgnoreCase(dynamicHeader)) {
+                dbHelper.saveSetting("header_text", dynamicHeader);
+            }
+            if (dynamicFooter != null && !dynamicFooter.trim().isEmpty() && !"null".equalsIgnoreCase(dynamicFooter)) {
+                dbHelper.saveSetting("footer_text", dynamicFooter);
+            }
+
             String template = dbHelper.getSetting("template");
             boolean isTemplate2 = "template_2".equals(template);
             
@@ -34,10 +45,10 @@ public class ReceiptBuilder {
             String lang = dbHelper.getSetting("language");
             boolean isIndo = "indonesia".equalsIgnoreCase(lang);
 
-            String lblInvoice = isIndo ? (isTemplate2 ? "Invoice: " : "Invoice    : ") : (isTemplate2 ? "Invoice : " : "Invoice  : ");
-            String lblTime    = isIndo ? (isTemplate2 ? "Waktu: " : "Waktu      : ") : (isTemplate2 ? "Time : " : "Time     : ");
-            String lblCashier = isIndo ? (isTemplate2 ? "Kasir: " : "Kasir      : ") : (isTemplate2 ? "Cashier : " : "Cashier  : ");
-            String lblTable   = isIndo ? (isTemplate2 ? "Meja: " : "Meja       : ") : (isTemplate2 ? "Table : " : "Table    : ");
+            String lblInvoice = isIndo ? (isTemplate2 ? "Kode struk : " : "Invoice    : ") : (isTemplate2 ? "Invoice : " : "Invoice  : ");
+            String lblTime    = isIndo ? (isTemplate2 ? "Tanggal : " : "Waktu      : ") : (isTemplate2 ? "Time : " : "Time     : ");
+            String lblCashier = isIndo ? (isTemplate2 ? "Kasir : " : "Kasir      : ") : (isTemplate2 ? "Cashier : " : "Cashier  : ");
+            String lblTable   = isIndo ? (isTemplate2 ? "No Meja : " : "Meja       : ") : (isTemplate2 ? "Table : " : "Table    : ");
             String lblPayment = isIndo ? (isTemplate2 ? "Pembayaran: " : "Pembayaran : ") : (isTemplate2 ? "Payment : " : "Payment  : ");
 
             String lblDiscount = isIndo ? "Diskon" : "Discount";
@@ -94,16 +105,23 @@ public class ReceiptBuilder {
             
             String jam = data.optString("jam_transaksi", "");
             if (jam != null && jam.length() >= 5) jam = jam.substring(0, 5);
-            sb.append(f.left(lblTime + data.optString("tanggal_transaksi", "") + " " + jam));
-            sb.append(f.left(lblCashier + data.optString("nama_lengkap", "")));
-            sb.append(f.left(lblTable + data.optString("meja", "")));
+
+            if (isTemplate2) {
+                sb.append(f.left(lblTable + data.optString("meja", "")));
+                sb.append(f.left(lblTime + data.optString("tanggal_transaksi", "") + " " + jam));
+                sb.append(f.left(lblCashier + data.optString("nama_lengkap", "")));
+            } else {
+                sb.append(f.left(lblTime + data.optString("tanggal_transaksi", "") + " " + jam));
+                sb.append(f.left(lblCashier + data.optString("nama_lengkap", "")));
+                sb.append(f.left(lblTable + data.optString("meja", "")));
+            }
 
             String pembayaran = data.optString("pembayaran", "");
             if (pembayaran == null || pembayaran.trim().isEmpty()) {
                 pembayaran = data.optString("tipe_transaksi", ""); // fallback for dummy data
             }
             
-            boolean isCardOrEdc = pembayaran.toLowerCase().contains("card") || pembayaran.toLowerCase().contains("edc") || pembayaran.toLowerCase().contains("qris") || pembayaran.toLowerCase().contains("kartu");
+            boolean isCardOrEdc = pembayaran.toLowerCase().contains("card") || pembayaran.toLowerCase().contains("edc") || pembayaran.toLowerCase().contains("qris") || pembayaran.toLowerCase().contains("kartu") || pembayaran.toLowerCase().contains("transfer");
             
             if (!isTemplate2) {
                 if (pembayaran != null && !pembayaran.trim().isEmpty()) {
@@ -170,7 +188,8 @@ public class ReceiptBuilder {
             sb.append(String.format("%-" + (paperWidth - 10) + "s %10s\n", lblTotalPaid, f.formatNumber(String.valueOf(totalGrand))));
 
             if (isTemplate2 && isCardOrEdc) {
-                sb.append(String.format("%-" + (paperWidth - 10) + "s %10s\n", "Kartu", f.formatNumber(String.valueOf(totalPaid))));
+                sb.append(String.format("%-" + (paperWidth - 10) + "s %10s\n", pembayaran, f.formatNumber(String.valueOf(totalPaid))));
+                sb.append(String.format("%-" + (paperWidth - 10) + "s %10s\n", "Kembali", f.formatNumber("0")));
             } else {
                 if (totalPaid != 0) {
                     sb.append(String.format("%-" + (paperWidth - 10) + "s %10s\n", lblPaid, f.formatNumber(String.valueOf(totalPaid))));
@@ -188,7 +207,6 @@ public class ReceiptBuilder {
                 sb.append(f.center(lblpaidBt + "\n"));
             }
 
-            sb.append(f.center(lblThankYou + "\n"));
             sb.append(f.center(dbHelper.getSetting("footer_text")));
 
             return sb.toString();

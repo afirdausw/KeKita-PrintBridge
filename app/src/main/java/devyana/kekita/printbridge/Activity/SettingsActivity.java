@@ -36,6 +36,12 @@ public class SettingsActivity extends AppCompatActivity {
         setupDropdowns();
     }
 
+    @Override
+    protected void onResume() {
+        super.onResume();
+        updatePreview();
+    }
+
     private void setupDropdowns() {
         // Setup Language Dropdown
         String[] languages = {"English", "Indonesia"};
@@ -164,7 +170,7 @@ public class SettingsActivity extends AppCompatActivity {
             java.util.Map<String, String> settings = dbHelper.getAllSettings();
             
             // Urutan yang diminta
-            String[] keys = {"client", "url", "language", "logo", "logo_print", "header_text", "footer_text"};
+            String[] keys = {"client", "url", "language", "template", "logo", "logo_print", "header_text", "footer_text"};
             
             StringBuilder sb = new StringBuilder();
             sb.append("{\n");
