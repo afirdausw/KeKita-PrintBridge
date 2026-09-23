@@ -3,6 +3,7 @@ package devyana.kekita.printbridge.Printer;
 import android.app.Notification;
 import android.app.NotificationChannel;
 import android.app.NotificationManager;
+import android.app.PendingIntent;
 import android.app.Service;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
@@ -23,7 +24,6 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -534,8 +534,8 @@ public class PrinterService extends Service {
     private void markAsDone(int id) {
         new Thread(() -> {
             try {
-                java.net.URL url = new java.net.URL(API_URL + "print_queue_update");
-                java.net.HttpURLConnection conn = (java.net.HttpURLConnection) url.openConnection();
+                URL url = new URL(API_URL + "print_queue_update");
+                HttpURLConnection conn = (HttpURLConnection) url.openConnection();
                 conn.setRequestMethod("POST");
                 conn.setDoOutput(true);
                 conn.setRequestProperty("Content-Type", "application/json; charset=utf-8");
@@ -634,15 +634,15 @@ public class PrinterService extends Service {
         // Optional: tambahkan intent ke MainActivity saat user tap notif
         Intent i = new Intent(this, MainActivity.class);
         i.setFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP);
-        b.setContentIntent(android.app.PendingIntent.getActivity(
-                this, 0, i, android.app.PendingIntent.FLAG_UPDATE_CURRENT | getPendingIntentMutability()));
+        b.setContentIntent(PendingIntent.getActivity(
+                this, 0, i, PendingIntent.FLAG_UPDATE_CURRENT | getPendingIntentMutability()));
 
         return b.build();
     }
 
     private int getPendingIntentMutability() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-            return android.app.PendingIntent.FLAG_MUTABLE;
+            return PendingIntent.FLAG_MUTABLE;
         } else {
             return 0;
         }

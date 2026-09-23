@@ -62,7 +62,7 @@ public class ReceiptBuilder {
             String lblPaid     = isTemplate3 ? "Dibayar" : (isIndo ? "Dibayar" : "Paid");
             String lblExchange = isTemplate3 ? "kembali" : (isIndo ? "Kembali" : "Exchange");
             String lblUnpaid   = isTemplate3 ? "--- Tagihan Belum Dibayar ---" : (isIndo ? "--- Tagihan Belum Dibayar ---" : "--- Unpaid Bill ---");
-            String lblpaidBt   = isTemplate3 ? "*** Lunas ***" : (isIndo ? "*** Lunas ***" : "*** Paid ***");
+            String lblpaidBt   = isTemplate3 ? "** LUNAS **" : (isIndo ? "*** Lunas ***" : "*** Paid ***");
             String lblThankYou = isTemplate3 ? "TERIMA KASIH" : (isIndo ? "TERIMA KASIH" : "THANK YOU");
 
             int totalItemCount = 0;
@@ -107,8 +107,24 @@ public class ReceiptBuilder {
             String jam = data.optString("jam_transaksi", "");
 
             if (isTemplate3) {
-                sb.append(f.left(lblTable + data.optString("meja", "")));
-                sb.append(f.left(lblTime + data.optString("tanggal_transaksi", "") + " " + jam));
+                String mejaStr = data.optString("meja", "");
+                try {
+                    int m = Integer.parseInt(mejaStr);
+                    mejaStr = String.valueOf(m);
+                } catch(Exception ignored) {}
+                
+                String tglStr = data.optString("tanggal_transaksi", "");
+                if (tglStr.length() >= 10) {
+                    try {
+                        String y = tglStr.substring(0, 4);
+                        String m = tglStr.substring(5, 7);
+                        String d = tglStr.substring(8, 10);
+                        tglStr = d + "-" + m + "-" + y;
+                    } catch(Exception ignored) {}
+                }
+                
+                sb.append(f.left(lblTable + mejaStr));
+                sb.append(f.left(lblTime + tglStr + " " + jam));
                 sb.append(f.left(lblCashier + data.optString("nama_lengkap", "")));
             } else if (isTemplate2) {
                 if (jam != null && jam.length() >= 5) jam = jam.substring(0, 5);
@@ -194,7 +210,6 @@ public class ReceiptBuilder {
             sb.append(String.format("%-" + (paperWidth - 10) + "s %10s\n", lblTotalPaid, f.formatNumber(String.valueOf(totalGrand))));
 
             if (isTemplate3) {
-                sb.append(f.feed(1));
                 sb.append(String.format("%-" + (paperWidth - 10) + "s %10s\n", (pembayaran != null && !pembayaran.isEmpty() ? pembayaran : "Tunai"), f.formatNumber(String.valueOf(totalPaid))));
                 if (pembayaran != null || !pembayaran.trim().isEmpty()) {
                     sb.append(String.format("%-" + (paperWidth - 10) + "s %10s\n", lblExchange, f.formatNumber(String.valueOf(totalExcange))));
@@ -222,7 +237,15 @@ public class ReceiptBuilder {
                 sb.append(f.center(lblpaidBt + "\n"));
             }
 
+            if (isTemplate3) {
+                sb.append("\n");
+            }
+
             sb.append(f.center(dbHelper.getSetting("footer_text")));
+
+            if (isTemplate3) {
+                sb.append("\n");
+            }
 
             return sb.toString();
         } catch (Exception e) {

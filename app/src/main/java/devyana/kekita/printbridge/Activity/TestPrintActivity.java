@@ -11,17 +11,15 @@ import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
 import android.view.Window;
-import android.widget.Button;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
 
 import com.google.android.material.button.MaterialButton;
 
-import org.json.JSONArray;
-import org.json.JSONObject;
-
-import devyana.kekita.printbridge.Printer.EscPosFormatter;
+import devyana.kekita.printbridge.Helper.DatabaseHelper;
+import devyana.kekita.printbridge.Helper.ReceiptBuilder;
 import devyana.kekita.printbridge.Printer.PrinterService;
 import devyana.kekita.printbridge.R;
 
@@ -59,10 +57,10 @@ public class TestPrintActivity extends AppCompatActivity {
     }
 
     private void updatePreview() {
-        android.widget.TextView tvPreview = findViewById(R.id.tv_preview);
-        android.widget.TextView tvTemplateName = findViewById(R.id.tv_template_name);
+        TextView tvPreview = findViewById(R.id.tv_preview);
+        TextView tvTemplateName = findViewById(R.id.tv_template_name);
 
-        devyana.kekita.printbridge.Helper.DatabaseHelper dbHelper = new devyana.kekita.printbridge.Helper.DatabaseHelper(this);
+        DatabaseHelper dbHelper = new DatabaseHelper(this);
         
         String savedLang = dbHelper.getSetting("language");
         String langStr = "indonesia".equalsIgnoreCase(savedLang) ? "Indonesia" : "English";
@@ -72,8 +70,8 @@ public class TestPrintActivity extends AppCompatActivity {
         if ("template_2".equals(savedTemp)) tempStr = "Template #2";
         else if ("template_3".equals(savedTemp)) tempStr = "Template #3";
 
-        android.content.SharedPreferences prefs = getSharedPreferences(devyana.kekita.printbridge.Printer.PrinterService.PREFS, MODE_PRIVATE);
-        String widthStr = prefs.getString(devyana.kekita.printbridge.Printer.PrinterService.KEY_PAPER_WIDTH, "58");
+        SharedPreferences prefs = getSharedPreferences(PREFS, MODE_PRIVATE);
+        String widthStr = prefs.getString(KEY_PAPER_WIDTH, "58");
         String paperStr = widthStr.equals("80") ? "80mm" : "58mm";
         
         if (tvTemplateName != null) {
@@ -111,8 +109,8 @@ public class TestPrintActivity extends AppCompatActivity {
             String widthStr = prefs.getString(KEY_PAPER_WIDTH, "58");
             int paperWidth = widthStr.equals("80") ? 45 : 31;
 
-            devyana.kekita.printbridge.Helper.DatabaseHelper dbHelper = new devyana.kekita.printbridge.Helper.DatabaseHelper(this);
-            return devyana.kekita.printbridge.Helper.ReceiptBuilder.buildReceiptString(jsonStr, paperWidth, dbHelper);
+            DatabaseHelper dbHelper = new DatabaseHelper(this);
+            return ReceiptBuilder.buildReceiptString(jsonStr, paperWidth, dbHelper);
         } catch (Exception e) {
             Log.e(TAG, "Error generating receipt string", e);
             return "Error generating preview: " + e.getMessage();

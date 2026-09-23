@@ -1,21 +1,38 @@
 package devyana.kekita.printbridge.Activity;
 
+import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.graphics.Color;
+import android.graphics.Typeface;
 import android.os.Build;
 import android.os.Bundle;
 import android.view.View;
 import android.view.Window;
+import android.widget.AdapterView;
+import android.widget.ArrayAdapter;
+import android.widget.AutoCompleteTextView;
+import android.widget.ScrollView;
+import android.widget.TextView;
 
+import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 
+import org.json.JSONArray;
+import org.json.JSONObject;
+
+import java.util.Map;
+
 import devyana.kekita.printbridge.Helper.DatabaseHelper;
+import devyana.kekita.printbridge.Helper.ReceiptBuilder;
+import devyana.kekita.printbridge.Printer.PrinterService;
 import devyana.kekita.printbridge.R;
+
 public class SettingsActivity extends AppCompatActivity {
 
-    private devyana.kekita.printbridge.Helper.DatabaseHelper dbHelper;
-    private android.widget.AutoCompleteTextView autocompleteLanguage;
-    private android.widget.AutoCompleteTextView autocompleteTemplate;
+    private DatabaseHelper dbHelper;
+    private AutoCompleteTextView autocompleteLanguage;
+    private AutoCompleteTextView autocompleteTemplate;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -29,7 +46,7 @@ public class SettingsActivity extends AppCompatActivity {
             window.getDecorView().setSystemUiVisibility(View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR);
         }
 
-        dbHelper = new devyana.kekita.printbridge.Helper.DatabaseHelper(this);
+        dbHelper = new DatabaseHelper(this);
         autocompleteLanguage = findViewById(R.id.autocomplete_language);
         autocompleteTemplate = findViewById(R.id.autocomplete_template);
 
@@ -45,7 +62,7 @@ public class SettingsActivity extends AppCompatActivity {
     private void setupDropdowns() {
         // Setup Language Dropdown
         String[] languages = {"English", "Indonesia"};
-        android.widget.ArrayAdapter<String> langAdapter = new android.widget.ArrayAdapter<>(this, android.R.layout.simple_dropdown_item_1line, languages);
+        ArrayAdapter<String> langAdapter = new ArrayAdapter<>(this, android.R.layout.simple_dropdown_item_1line, languages);
         autocompleteLanguage.setAdapter(langAdapter);
 
         String savedLang = dbHelper.getSetting("language");
@@ -55,9 +72,9 @@ public class SettingsActivity extends AppCompatActivity {
             autocompleteLanguage.setText(languages[0], false); // Default English
         }
 
-        autocompleteLanguage.setOnItemClickListener(new android.widget.AdapterView.OnItemClickListener() {
+        autocompleteLanguage.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
-            public void onItemClick(android.widget.AdapterView<?> parent, View view, int position, long id) {
+            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
                 if (position == 0) {
                     dbHelper.saveSetting("language", "english");
                 } else {
@@ -69,7 +86,7 @@ public class SettingsActivity extends AppCompatActivity {
 
         // Setup Template Dropdown
         String[] templates = {"Template #1", "Template #2", "Template #3"};
-        android.widget.ArrayAdapter<String> tempAdapter = new android.widget.ArrayAdapter<>(this, android.R.layout.simple_dropdown_item_1line, templates);
+        ArrayAdapter<String> tempAdapter = new ArrayAdapter<>(this, android.R.layout.simple_dropdown_item_1line, templates);
         autocompleteTemplate.setAdapter(tempAdapter);
 
         String savedTemp = dbHelper.getSetting("template");
@@ -86,9 +103,9 @@ public class SettingsActivity extends AppCompatActivity {
             if (layoutLanguage != null) layoutLanguage.setVisibility(View.VISIBLE);
         }
 
-        autocompleteTemplate.setOnItemClickListener(new android.widget.AdapterView.OnItemClickListener() {
+        autocompleteTemplate.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
-            public void onItemClick(android.widget.AdapterView<?> parent, View view, int position, long id) {
+            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
                 if (position == 0) {
                     dbHelper.saveSetting("template", "template_1");
                     if (layoutLanguage != null) layoutLanguage.setVisibility(View.VISIBLE);
@@ -104,24 +121,24 @@ public class SettingsActivity extends AppCompatActivity {
         });
 
         // Setup Paper Width Dropdown
-        android.widget.AutoCompleteTextView autocompletePaperWidth = findViewById(R.id.autocomplete_paper_width);
+        AutoCompleteTextView autocompletePaperWidth = findViewById(R.id.autocomplete_paper_width);
         String[] paperWidths = {"58mm", "80mm"};
-        android.widget.ArrayAdapter<String> paperAdapter = new android.widget.ArrayAdapter<>(this, android.R.layout.simple_dropdown_item_1line, paperWidths);
+        ArrayAdapter<String> paperAdapter = new ArrayAdapter<>(this, android.R.layout.simple_dropdown_item_1line, paperWidths);
         autocompletePaperWidth.setAdapter(paperAdapter);
 
-        android.content.SharedPreferences prefs = getSharedPreferences(devyana.kekita.printbridge.Printer.PrinterService.PREFS, MODE_PRIVATE);
-        String savedPaperWidth = prefs.getString(devyana.kekita.printbridge.Printer.PrinterService.KEY_PAPER_WIDTH, "58");
+        SharedPreferences prefs = getSharedPreferences(PrinterService.PREFS, MODE_PRIVATE);
+        String savedPaperWidth = prefs.getString(PrinterService.KEY_PAPER_WIDTH, "58");
         if ("80".equals(savedPaperWidth)) {
             autocompletePaperWidth.setText(paperWidths[1], false);
         } else {
             autocompletePaperWidth.setText(paperWidths[0], false);
         }
 
-        autocompletePaperWidth.setOnItemClickListener(new android.widget.AdapterView.OnItemClickListener() {
+        autocompletePaperWidth.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
-            public void onItemClick(android.widget.AdapterView<?> parent, View view, int position, long id) {
+            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
                 String width = position == 0 ? "58" : "80";
-                prefs.edit().putString(devyana.kekita.printbridge.Printer.PrinterService.KEY_PAPER_WIDTH, width).apply();
+                prefs.edit().putString(PrinterService.KEY_PAPER_WIDTH, width).apply();
                 updatePreview();
             }
         });
@@ -130,7 +147,7 @@ public class SettingsActivity extends AppCompatActivity {
     }
 
     private void updatePreview() {
-        android.widget.TextView tvPreview = findViewById(R.id.tv_preview);
+        TextView tvPreview = findViewById(R.id.tv_preview);
         if (tvPreview == null) return;
 
         try {
@@ -146,18 +163,19 @@ public class SettingsActivity extends AppCompatActivity {
                     + "\"items\":["
                     + "{\"id_detail_transaksi\":\"16\",\"nama_produk\":\"Special Juice\",\"nama_varian\":\"Carrot\",\"jumlah_produk\":\"1\",\"subtotal\":\"30000\"},"
                     + "{\"id_detail_transaksi\":\"17\",\"nama_produk\":\"Cappucino\",\"catatan_item\":\"Less sugar\",\"jumlah_produk\":\"1\",\"subtotal\":\"33000\"},"
-                    + "{\"id_detail_transaksi\":\"18\",\"nama_produk\":\"Javanese Fried Noodle\",\"jumlah_produk\":\"1\",\"subtotal\":\"30000\"}"
+                    + "{\"id_detail_transaksi\":\"18\",\"nama_produk\":\"Javanese Fried Noodle\",\"jumlah_produk\":\"1\",\"subtotal\":\"30000\"},"
+                    + "{\"id_detail_transaksi\":\"19\",\"nama_produk\":\"Chicken Cordon Bleu\",\"jumlah_produk\":\"1\",\"subtotal\":\"50000\"}"
                     + "]}";
 
-            org.json.JSONObject root = new org.json.JSONObject(jsonStr);
-            org.json.JSONObject data = root.getJSONObject("data");
-            org.json.JSONArray items = root.getJSONArray("items");
+            JSONObject root = new JSONObject(jsonStr);
+            JSONObject data = root.getJSONObject("data");
+            JSONArray items = root.getJSONArray("items");
 
-            android.content.SharedPreferences prefs = getSharedPreferences(devyana.kekita.printbridge.Printer.PrinterService.PREFS, MODE_PRIVATE);
-            String widthStr = prefs.getString(devyana.kekita.printbridge.Printer.PrinterService.KEY_PAPER_WIDTH, "58");
+            SharedPreferences prefs = getSharedPreferences(PrinterService.PREFS, MODE_PRIVATE);
+            String widthStr = prefs.getString(PrinterService.KEY_PAPER_WIDTH, "58");
             int paperWidth = widthStr.equals("80") ? 45 : 31;
 
-            String receiptStr = devyana.kekita.printbridge.Helper.ReceiptBuilder.buildReceiptString(jsonStr, paperWidth, dbHelper);
+            String receiptStr = ReceiptBuilder.buildReceiptString(jsonStr, paperWidth, dbHelper);
             tvPreview.setText(receiptStr);
 
         } catch (Exception e) {
@@ -179,7 +197,7 @@ public class SettingsActivity extends AppCompatActivity {
 
     public void onShowConfig(View view) {
         try {
-            java.util.Map<String, String> settings = dbHelper.getAllSettings();
+            Map<String, String> settings = dbHelper.getAllSettings();
             
             // Urutan yang diminta
             String[] keys = {"client", "url", "language", "template", "logo", "logo_print", "header_text", "footer_text"};
@@ -232,18 +250,18 @@ public class SettingsActivity extends AppCompatActivity {
             String finalJsonStr = sb.toString();
 
             // Custom View untuk AlertDialog (ScrollView + TextView Monospace)
-            android.widget.ScrollView scrollView = new android.widget.ScrollView(this);
+            ScrollView scrollView = new ScrollView(this);
             scrollView.setPadding(40, 20, 40, 20);
             
-            android.widget.TextView tvJson = new android.widget.TextView(this);
+            TextView tvJson = new TextView(this);
             tvJson.setText(finalJsonStr);
-            tvJson.setTypeface(android.graphics.Typeface.MONOSPACE);
+            tvJson.setTypeface(Typeface.MONOSPACE);
             tvJson.setTextSize(13f);
             tvJson.setTextColor(Color.parseColor("#333333"));
             
             scrollView.addView(tvJson);
 
-            new androidx.appcompat.app.AlertDialog.Builder(this)
+            new AlertDialog.Builder(this)
                     .setTitle("Konfigurasi API / Klien")
                     .setView(scrollView)
                     .setPositiveButton("Tutup", null)
@@ -254,12 +272,12 @@ public class SettingsActivity extends AppCompatActivity {
     }
 
     public void onLogout(View view) {
-        new androidx.appcompat.app.AlertDialog.Builder(this)
+        new AlertDialog.Builder(this)
                 .setTitle("Konfirmasi Logout")
                 .setMessage("Apakah Anda yakin ingin logout? Anda harus memasukkan kode verifikasi lagi dari awal.")
-                .setPositiveButton("Ya, Keluar", new android.content.DialogInterface.OnClickListener() {
+                .setPositiveButton("Ya, Keluar", new DialogInterface.OnClickListener() {
                     @Override
-                    public void onClick(android.content.DialogInterface dialog, int which) {
+                    public void onClick(DialogInterface dialog, int which) {
                         DatabaseHelper db = new DatabaseHelper(SettingsActivity.this);
                         db.clearAllSettings();
                         finish();
