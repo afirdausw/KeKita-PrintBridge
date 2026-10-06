@@ -84,7 +84,9 @@ public class ReceiptBuilder {
             }
 
             // Info transaksi
-            String rawInvoice = "#" + data.optString("invoice", "");
+            String useHash = dbHelper.getSetting("use_hash_invoice");
+            boolean addHash = (useHash == null) || "true".equals(useHash);
+            String rawInvoice = (addHash ? "#" : "") + data.optString("invoice", "");
             if (isTemplate2 || isTemplate3) {
                 try {
                     MessageDigest md = MessageDigest.getInstance("MD5");
@@ -226,7 +228,7 @@ public class ReceiptBuilder {
                 }
             }
 
-            if (!isTemplate3) {
+            if (!isTemplate2 && !isTemplate3) {
                 sb.append(f.separator());
             }
             sb.append(f.feed(1));

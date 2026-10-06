@@ -143,12 +143,39 @@ public class SettingsActivity extends AppCompatActivity {
             }
         });
 
+        AutoCompleteTextView autocompleteInvoiceHash = findViewById(R.id.autocomplete_invoice_hash);
+        String[] hashOptions = {"Ya", "Tidak"};
+        ArrayAdapter<String> hashAdapter = new ArrayAdapter<>(this, android.R.layout.simple_dropdown_item_1line, hashOptions);
+        if (autocompleteInvoiceHash != null) {
+            autocompleteInvoiceHash.setAdapter(hashAdapter);
+
+            String savedHash = dbHelper.getSetting("use_hash_invoice");
+            if (savedHash == null) {
+                savedHash = "true";
+                dbHelper.saveSetting("use_hash_invoice", "true");
+            }
+            if ("false".equals(savedHash)) {
+                autocompleteInvoiceHash.setText(hashOptions[1], false);
+            } else {
+                autocompleteInvoiceHash.setText(hashOptions[0], false);
+            }
+
+            autocompleteInvoiceHash.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+                @Override
+                public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+                    dbHelper.saveSetting("use_hash_invoice", position == 0 ? "true" : "false");
+                    updatePreview();
+                }
+            });
+        }
+
         updatePreview();
     }
 
     private void updatePreview() {
         TextView tvPreview = findViewById(R.id.tv_preview);
         if (tvPreview == null) return;
+        tvPreview.setTypeface(Typeface.create("sans-serif-monospace", Typeface.NORMAL));
 
         try {
             String jsonStr = "{ \"menu\":\"Kasir\",\"title\":\"Print Struk #250823001\","

@@ -58,6 +58,9 @@ public class TestPrintActivity extends AppCompatActivity {
 
     private void updatePreview() {
         TextView tvPreview = findViewById(R.id.tv_preview);
+        if (tvPreview != null) {
+            tvPreview.setTypeface(android.graphics.Typeface.create("sans-serif-monospace", android.graphics.Typeface.NORMAL));
+        }
         TextView tvTemplateName = findViewById(R.id.tv_template_name);
 
         DatabaseHelper dbHelper = new DatabaseHelper(this);
