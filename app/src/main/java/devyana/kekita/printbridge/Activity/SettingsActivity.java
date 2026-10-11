@@ -169,6 +169,24 @@ public class SettingsActivity extends AppCompatActivity {
             });
         }
 
+        AutoCompleteTextView autocompleteRandomize = findViewById(R.id.autocomplete_randomize_invoice);
+        if (autocompleteRandomize != null) {
+            String[] randomizeOptions = {"Ya", "Tidak"};
+            autocompleteRandomize.setAdapter(new ArrayAdapter<>(this, android.R.layout.simple_dropdown_item_1line, randomizeOptions));
+
+            // Default: tidak diacak
+            boolean randomize = "true".equals(dbHelper.getSetting("randomize_invoice"));
+            autocompleteRandomize.setText(randomizeOptions[randomize ? 0 : 1], false);
+
+            autocompleteRandomize.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+                @Override
+                public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+                    dbHelper.saveSetting("randomize_invoice", position == 0 ? "true" : "false");
+                    updatePreview();
+                }
+            });
+        }
+
         updatePreview();
     }
 

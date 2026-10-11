@@ -24,6 +24,7 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -45,6 +46,7 @@ import devyana.kekita.printbridge.Helper.DatabaseHelper;
 import devyana.kekita.printbridge.Helper.EscPosImageHelper;
 import devyana.kekita.printbridge.Activity.MainActivity;
 import devyana.kekita.printbridge.Helper.ReceiptBuilder;
+import devyana.kekita.printbridge.Helper.ReceiptPayload;
 import devyana.kekita.printbridge.R;
 
 public class PrinterService extends Service {
@@ -175,6 +177,16 @@ public class PrinterService extends Service {
 
         boolean printed = false;
         if ("bill".equalsIgnoreCase(tipe)) {
+            try {
+                List<String> missing = ReceiptPayload.parse(row.toString()).validate(true);
+                if (!missing.isEmpty()) {
+                    Log.e(TAG, "Payload bill tidak valid, field wajib hilang: " + missing + " (id=" + id + ")");
+                    return;
+                }
+            } catch (JSONException e) {
+                Log.e(TAG, "Payload bill tidak bisa di-parse", e);
+                return;
+            }
             printed = handlePayloadJson(row.toString());
         } else if ("recap".equalsIgnoreCase(tipe)) {
             printed = handleRecapPayloadJson(row.toString());
@@ -204,20 +216,7 @@ public class PrinterService extends Service {
             EscPosFormatter f = new EscPosFormatter(paperWidth);
             StringBuilder sb = new StringBuilder();
 
-            // Load logo dari drawable = AMAN
-            byte[] logoBytes = null;
-            String client = dbHelper.getSetting("client");
-            if (client != null && !client.isEmpty()) {
-                Bitmap logo = null;
-                if (client.equals("Kusuma Kitchen")) {
-                    logo = BitmapFactory.decodeResource(getResources(), R.drawable.logo_print_kusuma);
-                } else if (client.equals("Biji Kopi")) {
-                    logo = BitmapFactory.decodeResource(getResources(), R.drawable.logo_print_bijikopi);
-                }
-                logo = EscPosImageHelper.resizeBitmap(logo, 220);
-                logo = EscPosImageHelper.toMonochrome(logo);
-                logoBytes = EscPosImageHelper.decodeBitmap(logo);
-            }
+            byte[] logoBytes = loadLogoBytes();
 
             String receiptStr = ReceiptBuilder.buildReceiptString(payloadJson, paperWidth, dbHelper);
 
@@ -227,6 +226,46 @@ public class PrinterService extends Service {
         } catch (Exception e) {
             Log.e(TAG, "handlePayloadJson error", e);
             return false;
+        }
+    }
+
+    /**
+     * Logo cetak: utama dari file hasil download saat login (setting "logo_print"),
+     * fallback ke drawable bawaan per client. Tidak pernah melempar exception;
+     * kalau semua gagal return null sehingga struk tetap tercetak tanpa logo.
+     */
+    private byte[] loadLogoBytes() {
+        try {
+            Bitmap logo = null;
+
+            String path = dbHelper.getSetting("logo_print");
+            if (path != null && !path.isEmpty()) {
+                File f = new File(path);
+                if (f.exists() && f.length() > 0) {
+                    logo = BitmapFactory.decodeFile(f.getAbsolutePath());
+                }
+            }
+
+            if (logo == null) {
+                String client = dbHelper.getSetting("client");
+                if ("Kusuma Kitchen".equals(client)) {
+                    logo = BitmapFactory.decodeResource(getResources(), R.drawable.logo_print_kusuma);
+                } else if ("Biji Kopi".equals(client)) {
+                    logo = BitmapFactory.decodeResource(getResources(), R.drawable.logo_print_bijikopi);
+                }
+            }
+
+            if (logo == null) {
+                Log.w(TAG, "Logo tidak tersedia, cetak tanpa logo");
+                return null;
+            }
+
+            logo = EscPosImageHelper.resizeBitmap(logo, 220);
+            logo = EscPosImageHelper.toMonochrome(logo);
+            return EscPosImageHelper.decodeBitmap(logo);
+        } catch (Exception e) {
+            Log.e(TAG, "loadLogoBytes error, cetak tanpa logo", e);
+            return null;
         }
     }
 

@@ -27,9 +27,11 @@ public class EscPosImageHelper {
         for (int y = 0; y < height; y++) {
             for (int x = 0; x < width; x++) {
                 int pixel = bmp.getPixel(x, y);
-                int r = Color.red(pixel);
-                int g = Color.green(pixel);
-                int b = Color.blue(pixel);
+                // PNG transparan: komposit ke latar putih, kalau tidak area transparan jadi hitam pekat
+                int a = Color.alpha(pixel);
+                int r = (Color.red(pixel) * a + 255 * (255 - a)) / 255;
+                int g = (Color.green(pixel) * a + 255 * (255 - a)) / 255;
+                int b = (Color.blue(pixel) * a + 255 * (255 - a)) / 255;
                 int luminance = (r + g + b) / 3;
 
                 if (luminance < 128) {
